@@ -1,0 +1,34 @@
+<main class="login-shell">
+  <section class="login-hero">
+    <div class="brand">
+      <span><svg lucideHeartPulse size="26"></svg></span>
+      <strong>VitalBite</strong>
+    </div>
+    <h1>Clínica Central</h1>
+    <p>Información clínica centralizada para gestionar pacientes, citas y evolución corporal.</p>
+  </section>
+
+  <section class="login-panel">
+    <p class="eyebrow">Acceso profesional</p>
+    <h2>Ingresar al sistema</h2>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label class="field">
+        <span>Email</span>
+        <input formControlName="email" type="email" autocomplete="email" />
+      </label>
+      <label class="field">
+        <span>Contraseña</span>
+        <input formControlName="password" type="password" autocomplete="current-password" />
+      </label>
+
+      @if (error()) {
+        <p class="error-state compact">{{ error() }}</p>
+      }
+
+      <button class="btn" type="submit" [disabled]="session.loading()">
+        <svg lucideLogIn size="18"></svg>
+        {{ session.loading() ? 'Ingresando...' : 'Ingresar' }}
+      </button>
+    </form>
+  </section>
+</main>

@@ -1,0 +1,79 @@
+<header class="page-header">
+  <div>
+    <h1>Inicio</h1>
+    <p>Resumen operativo de pacientes, agenda y evolución reciente.</p>
+  </div>
+  <a class="btn" routerLink="/appointments">
+    <svg lucideCalendarDays size="18"></svg>
+    Ver agenda
+  </a>
+</header>
+
+@if (loading()) {
+  <div class="loading-state">Cargando indicadores...</div>
+} @else if (error()) {
+  <div class="error-state">{{ error() }}</div>
+} @else {
+  <section class="kpi-grid">
+    <article class="kpi-card">
+      <span class="kpi-icon"><svg lucideUsers size="20"></svg></span>
+      <div><small>Pacientes activos</small><strong>{{ activePatients() }}</strong></div>
+    </article>
+    <article class="kpi-card">
+      <span class="kpi-icon"><svg lucideCalendarDays size="20"></svg></span>
+      <div><small>Citas pendientes</small><strong>{{ pendingAppointments() }}</strong></div>
+    </article>
+    <article class="kpi-card">
+      <span class="kpi-icon"><svg lucideClipboardList size="20"></svg></span>
+      <div><small>Citas completadas</small><strong>{{ completedAppointments() }}</strong></div>
+    </article>
+    <article class="kpi-card">
+      <span class="kpi-icon"><svg lucideRuler size="20"></svg></span>
+      <div><small>Último IMC</small><strong>{{ latestMeasurement()?.bmi || 'N/D' }}</strong></div>
+    </article>
+  </section>
+
+  <section class="grid dashboard-grid">
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Próximas citas</h2>
+          <p class="muted">Agenda clínica más cercana</p>
+        </div>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr><th>Paciente</th><th>Fecha</th><th>Estado</th></tr>
+        </thead>
+        <tbody>
+          @for (appointment of appointments().slice(0, 5); track appointment.id) {
+            <tr>
+              <td><strong>{{ appointment.patientFullName }}</strong></td>
+              <td>{{ formatDate(appointment.scheduledAt) }}</td>
+              <td><span class="badge">{{ statusLabel(appointment.status) }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </article>
+
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Evolución reciente</h2>
+          <p class="muted">Paciente con evolución registrada</p>
+        </div>
+      </div>
+      <div class="chart-bars">
+        @for (measurement of measurements().slice(0, 6).reverse(); track measurement.id; let last = $last) {
+          <span
+            class="bar"
+            [class.featured]="last"
+            [style.height.px]="40 + (measurement.weightKg || 0)"
+            [title]="measurement.weightKg + ' kg'"
+          ></span>
+        }
+      </div>
+    </article>
+  </section>
+}

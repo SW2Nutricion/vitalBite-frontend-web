@@ -1,0 +1,126 @@
+<header class="page-header">
+  <div>
+    <h1>Pacientes</h1>
+    <p>Gestiona tus pacientes y entra a su expediente nutricional.</p>
+  </div>
+  <button class="btn" type="button" (click)="openCreate()">
+    <svg lucidePlus size="18"></svg>
+    Nuevo paciente
+  </button>
+</header>
+
+<section class="kpi-grid">
+  <article class="kpi-card">
+    <span class="kpi-icon"><svg lucideUsers size="20"></svg></span>
+    <div><small>Activos</small><strong>{{ activeCount() }}</strong></div>
+  </article>
+  <article class="kpi-card">
+    <span class="kpi-icon"><svg lucideUsers size="20"></svg></span>
+    <div><small>Inactivos</small><strong>{{ inactiveCount() }}</strong></div>
+  </article>
+  <article class="kpi-card">
+    <span class="kpi-icon"><svg lucideArchive size="20"></svg></span>
+    <div><small>Archivados</small><strong>{{ archivedCount() }}</strong></div>
+  </article>
+  <article class="kpi-card">
+    <span class="kpi-icon"><svg lucideFilter size="20"></svg></span>
+    <div><small>Total visible</small><strong>{{ patients().length }}</strong></div>
+  </article>
+</section>
+
+<form class="toolbar" [formGroup]="filters" (ngSubmit)="load()">
+  <svg lucideSearch size="18"></svg>
+  <input class="search-input" formControlName="search" placeholder="Buscar por nombre, email o teléfono" />
+  <select formControlName="status">
+    <option value="">Todos</option>
+    <option value="ACTIVE">Activos</option>
+    <option value="INACTIVE">Inactivos</option>
+    <option value="ARCHIVED">Archivados</option>
+  </select>
+  <button class="btn" type="submit">Aplicar</button>
+</form>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Tabla de pacientes</h2>
+      <p class="muted">Listado central con acciones por fila</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">Cargando pacientes...</div>
+  } @else if (error()) {
+    <div class="error-state">{{ error() }}</div>
+  } @else if (!patients().length) {
+    <div class="empty-state">No hay pacientes para los filtros seleccionados.</div>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Paciente</th>
+          <th>Estado</th>
+          <th>Objetivo</th>
+          <th>Contacto</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (patient of patients(); track patient.id) {
+          <tr>
+            <td><strong>{{ patient.fullName }}</strong></td>
+            <td><span class="badge" [class.warning]="patient.status === 'INACTIVE'" [class.danger]="patient.status === 'ARCHIVED'">{{ statusLabel(patient.status) }}</span></td>
+            <td>{{ patient.nutritionGoal || 'Sin objetivo' }}</td>
+            <td>{{ patient.email || patient.phone || 'Sin contacto' }}</td>
+            <td class="row-actions">
+              <a class="btn secondary" [routerLink]="['/patients', patient.id]">Ver detalle</a>
+              <button class="btn secondary" type="button" (click)="openEdit(patient)">Editar</button>
+              @if (patient.status !== 'ARCHIVED') {
+                <button class="btn danger" type="button" (click)="archive(patient)">Archivar</button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
+
+<app-modal
+  [open]="modalOpen()"
+  [title]="editing() ? 'Editar paciente' : 'Nuevo paciente'"
+  eyebrow="Expediente nutricional"
+  (close)="modalOpen.set(false)"
+>
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <div class="form-grid">
+      <label class="field"><span>Nombre</span><input formControlName="firstName" /></label>
+      <label class="field"><span>Apellido</span><input formControlName="lastName" /></label>
+      <label class="field"><span>Email</span><input formControlName="email" type="email" /></label>
+      <label class="field"><span>Teléfono</span><input formControlName="phone" /></label>
+      <label class="field"><span>Nacimiento</span><input formControlName="birthDate" type="date" /></label>
+      <label class="field">
+        <span>Género</span>
+        <select formControlName="gender">
+          <option value="NOT_SPECIFIED">No especificado</option>
+          <option value="FEMALE">Femenino</option>
+          <option value="MALE">Masculino</option>
+          <option value="OTHER">Otro</option>
+        </select>
+      </label>
+      <label class="field"><span>Estado</span>
+        <select formControlName="status">
+          <option value="ACTIVE">Activo</option>
+          <option value="INACTIVE">Inactivo</option>
+          <option value="ARCHIVED">Archivado</option>
+        </select>
+      </label>
+      <label class="field wide"><span>Objetivo</span><input formControlName="nutritionGoal" /></label>
+      <label class="field wide"><span>Notas clínicas</span><textarea formControlName="clinicalNotes" rows="4"></textarea></label>
+    </div>
+    <div class="actions">
+      <button class="btn secondary" type="button" (click)="modalOpen.set(false)">Cancelar</button>
+      <button class="btn" type="submit">Guardar</button>
+    </div>
+  </form>
+</app-modal>

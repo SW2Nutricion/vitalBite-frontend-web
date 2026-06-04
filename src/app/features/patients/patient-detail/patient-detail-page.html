@@ -1,0 +1,57 @@
+<header class="page-header">
+  <div>
+    <a class="btn secondary" routerLink="/patients">
+      <svg lucideArrowLeft size="18"></svg>
+      Pacientes
+    </a>
+    <h1>{{ patient()?.fullName || 'Expediente' }}</h1>
+    <p>{{ patient()?.nutritionGoal || 'Detalle clínico y nutricional' }}</p>
+  </div>
+  <a class="btn" routerLink="/appointments">
+    <svg lucideCalendarDays size="18"></svg>
+    Ver citas
+  </a>
+</header>
+
+@if (loading()) {
+  <div class="loading-state">Cargando expediente...</div>
+} @else if (error()) {
+  <div class="error-state">{{ error() }}</div>
+} @else {
+  <section class="kpi-grid">
+    <article class="kpi-card"><span class="kpi-icon"><svg lucideCalendarDays size="20"></svg></span><div><small>Citas</small><strong>{{ appointments().length }}</strong></div></article>
+    <article class="kpi-card"><span class="kpi-icon"><svg lucideRuler size="20"></svg></span><div><small>Mediciones</small><strong>{{ measurements().length }}</strong></div></article>
+    <article class="kpi-card"><span class="kpi-icon"><svg lucideRuler size="20"></svg></span><div><small>Último peso</small><strong>{{ measurements()[0]?.weightKg || 'N/D' }}</strong></div></article>
+    <article class="kpi-card"><span class="kpi-icon"><svg lucideRuler size="20"></svg></span><div><small>Último IMC</small><strong>{{ measurements()[0]?.bmi || 'N/D' }}</strong></div></article>
+  </section>
+
+  <section class="grid two-columns">
+    <article class="panel">
+      <div class="panel-header"><h2>Datos clínicos</h2></div>
+      <table class="data-table">
+        <tbody>
+          <tr><th>Email</th><td>{{ patient()?.email || 'Sin registro' }}</td></tr>
+          <tr><th>Teléfono</th><td>{{ patient()?.phone || 'Sin registro' }}</td></tr>
+          <tr><th>Estado</th><td><span class="badge">{{ patientStatusLabel(patient()?.status) }}</span></td></tr>
+          <tr><th>Notas</th><td>{{ patient()?.clinicalNotes || 'Sin notas clínicas' }}</td></tr>
+        </tbody>
+      </table>
+    </article>
+
+    <article class="panel">
+      <div class="panel-header"><h2>Citas recientes</h2></div>
+      <table class="data-table">
+        <thead><tr><th>Fecha</th><th>Estado</th><th>Motivo</th></tr></thead>
+        <tbody>
+          @for (appointment of appointments().slice(0, 5); track appointment.id) {
+            <tr>
+              <td>{{ formatDate(appointment.scheduledAt) }}</td>
+              <td><span class="badge">{{ appointmentStatusLabel(appointment.status) }}</span></td>
+              <td>{{ appointment.reason || 'Consulta nutricional' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </article>
+  </section>
+}

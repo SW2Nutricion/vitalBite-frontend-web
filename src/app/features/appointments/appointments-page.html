@@ -1,0 +1,86 @@
+<header class="page-header">
+  <div>
+    <h1>Citas</h1>
+    <p>Administra la agenda nutricional y los cambios de estado.</p>
+  </div>
+  <button class="btn" type="button" (click)="modalOpen.set(true)">
+    <svg lucidePlus size="18"></svg>
+    Nueva cita
+  </button>
+</header>
+
+<section class="kpi-grid">
+  <article class="kpi-card"><span class="kpi-icon"><svg lucideCalendarDays size="20"></svg></span><div><small>Total</small><strong>{{ appointments().length }}</strong></div></article>
+  <article class="kpi-card"><span class="kpi-icon"><svg lucideClock size="20"></svg></span><div><small>Activas</small><strong>{{ activeCount() }}</strong></div></article>
+  <article class="kpi-card"><span class="kpi-icon"><svg lucideCheck size="20"></svg></span><div><small>Confirmadas</small><strong>{{ confirmedCount() }}</strong></div></article>
+  <article class="kpi-card"><span class="kpi-icon"><svg lucideX size="20"></svg></span><div><small>Canceladas</small><strong>{{ cancelledCount() }}</strong></div></article>
+</section>
+
+<form class="toolbar" [formGroup]="filters" (ngSubmit)="load()">
+  <input class="search-input" formControlName="search" placeholder="Buscar paciente, motivo o nutricionista" />
+  <select formControlName="status">
+    <option value="">Todos</option>
+    <option value="SCHEDULED">Programadas</option>
+    <option value="CONFIRMED">Confirmadas</option>
+    <option value="RESCHEDULED">Reprogramadas</option>
+    <option value="COMPLETED">Completadas</option>
+    <option value="CANCELLED">Canceladas</option>
+    <option value="NO_SHOW">Inasistencia</option>
+  </select>
+  <button class="btn" type="submit">Aplicar</button>
+</form>
+
+<section class="panel">
+  <div class="panel-header"><h2>Agenda semanal</h2><p class="muted">Citas registradas para seguimiento</p></div>
+  @if (loading()) {
+    <div class="loading-state">Cargando agenda...</div>
+  } @else if (error()) {
+    <div class="error-state">{{ error() }}</div>
+  } @else {
+    <table class="data-table">
+      <thead><tr><th>Fecha</th><th>Paciente</th><th>Motivo</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody>
+        @for (appointment of appointments(); track appointment.id) {
+          <tr>
+            <td>{{ formatDate(appointment.scheduledAt) }}</td>
+            <td><strong>{{ appointment.patientFullName }}</strong></td>
+            <td>{{ appointment.reason || 'Consulta nutricional' }}</td>
+            <td><span class="badge" [class.warning]="badgeClass(appointment.status) === 'warning'" [class.danger]="badgeClass(appointment.status) === 'danger'">{{ statusLabel(appointment.status) }}</span></td>
+            <td class="row-actions">
+              <button class="icon-btn" type="button" title="Confirmar" (click)="confirm(appointment.id)"><svg lucideCheck size="16"></svg></button>
+              <button class="icon-btn" type="button" title="Completar" (click)="complete(appointment.id)"><svg lucideCalendarDays size="16"></svg></button>
+              <button class="icon-btn" type="button" title="Inasistencia" (click)="noShow(appointment.id)"><svg lucideRotateCw size="16"></svg></button>
+              <button class="icon-btn" type="button" title="Cancelar" (click)="cancel(appointment.id)"><svg lucideX size="16"></svg></button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
+
+<app-modal [open]="modalOpen()" title="Nueva cita" eyebrow="Agenda nutricional" (close)="modalOpen.set(false)">
+  <form [formGroup]="form" (ngSubmit)="create()">
+    <div class="form-grid">
+      <label class="field wide"><span>Paciente</span>
+        <select formControlName="patientId">
+          @for (patient of patients(); track patient.id) {
+            <option [value]="patient.id">{{ patient.fullName }}</option>
+          }
+        </select>
+      </label>
+      <label class="field"><span>Fecha</span><input type="date" formControlName="scheduledDate" /></label>
+      <label class="field"><span>Hora</span><input type="time" formControlName="scheduledTime" /></label>
+      <label class="field"><span>Duración</span><input type="number" min="1" formControlName="durationMinutes" /></label>
+      <label class="field"><span>Modalidad</span>
+        <select formControlName="mode"><option value="IN_PERSON">Presencial</option><option value="VIRTUAL">Virtual</option></select>
+      </label>
+      <label class="field"><span>Estado inicial</span>
+        <select formControlName="status"><option value="SCHEDULED">Programada</option><option value="CONFIRMED">Confirmada</option></select>
+      </label>
+      <label class="field wide"><span>Motivo</span><input formControlName="reason" /></label>
+      <label class="field wide"><span>Observaciones</span><textarea rows="3" formControlName="notes"></textarea></label>
+    </div>
+    <div class="actions"><button class="btn secondary" type="button" (click)="modalOpen.set(false)">Cancelar</button><button class="btn" type="submit">Guardar</button></div>
+  </form>
+</app-modal>

@@ -1,0 +1,51 @@
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" routerLink="/dashboard">
+      <span class="brand-mark"><svg lucideHeartPulse size="22"></svg></span>
+      <span>VitalBite</span>
+    </a>
+
+    <nav class="side-nav">
+      @for (item of navItems; track item.route) {
+        <a [routerLink]="item.route" routerLinkActive="active">
+          @switch (item.icon) {
+            @case ('dashboard') {
+              <svg lucideLayoutDashboard size="18"></svg>
+            }
+            @case ('patients') {
+              <svg lucideUsers size="18"></svg>
+            }
+            @case ('appointments') {
+              <svg lucideCalendarDays size="18"></svg>
+            }
+            @case ('measurements') {
+              <svg lucideRuler size="18"></svg>
+            }
+          }
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="profile-card">
+      <span class="avatar">{{ session.user()?.firstName?.charAt(0) || 'D' }}</span>
+      <div>
+        <strong>{{ session.user()?.firstName || 'Dra.' }} {{ session.user()?.lastName || 'Elena' }}</strong>
+        <small>Nutricionista</small>
+      </div>
+      <button class="icon-btn ghost" type="button" (click)="session.logout()" aria-label="Salir">
+        <svg lucideLogOut size="16"></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main class="workspace">
+    <header class="topbar">
+      <strong>{{ session.tenant()?.name || 'Clínica Central' }}</strong>
+      <span class="role-pill"><svg lucideActivity size="16"></svg> Nutricionista</span>
+    </header>
+    <section class="page-slot">
+      <router-outlet />
+    </section>
+  </main>
+</div>

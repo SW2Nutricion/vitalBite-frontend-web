@@ -1,0 +1,112 @@
+<header class="page-header">
+  <div>
+    <h1>Medidas corporales</h1>
+    <p>Evolución corporal y registro de mediciones.</p>
+  </div>
+  <button class="btn" type="button" (click)="measurementModal.set(true)">
+    <svg lucidePlus size="18"></svg>
+    Nueva medición
+  </button>
+</header>
+
+<form class="toolbar">
+  <select [value]="selectedPatientId()" (change)="changePatient($any($event.target).value)">
+    @for (patient of patients(); track patient.id) {
+      <option [value]="patient.id">{{ patient.fullName }}</option>
+    }
+  </select>
+  <button class="btn secondary" type="button" (click)="compositionModal.set(true)" [disabled]="!latestMeasurement()">
+    Registrar composición
+  </button>
+</form>
+
+@if (loading()) {
+  <div class="loading-state">Cargando mediciones...</div>
+} @else if (error()) {
+  <div class="error-state">{{ error() }}</div>
+} @else {
+  <section class="grid measurements-grid">
+    <article class="panel main-measurements">
+      <div class="panel-header">
+        <div>
+          <h2>Evolución corporal</h2>
+          <p class="muted">{{ selectedPatient()?.fullName || 'Paciente' }}</p>
+        </div>
+      </div>
+
+      <div class="kpi-grid compact-kpis">
+        <article class="kpi-card"><span class="kpi-icon"><svg lucideWeight size="20"></svg></span><div><small>Peso</small><strong>{{ latestMeasurement()?.weightKg || 'N/D' }}</strong></div></article>
+        <article class="kpi-card"><span class="kpi-icon"><svg lucideRuler size="20"></svg></span><div><small>IMC</small><strong>{{ latestMeasurement()?.bmi || 'N/D' }}</strong></div></article>
+        <article class="kpi-card"><span class="kpi-icon"><svg lucideRuler size="20"></svg></span><div><small>Cintura</small><strong>{{ latestMeasurement()?.waistCm || 'N/D' }}</strong></div></article>
+        <article class="kpi-card"><span class="kpi-icon"><svg lucideClipboardList size="20"></svg></span><div><small>Registros</small><strong>{{ measurements().length }}</strong></div></article>
+      </div>
+
+      <div class="chart-bars">
+        @for (measurement of measurements().slice(0, 6).reverse(); track measurement.id; let last = $last) {
+          <span class="bar" [class.featured]="last" [style.height.px]="barHeight(measurement)"></span>
+        }
+      </div>
+
+      <table class="data-table">
+        <thead><tr><th>Fecha</th><th>Peso</th><th>IMC</th><th>Cintura</th><th>Cadera</th></tr></thead>
+        <tbody>
+          @for (measurement of measurements(); track measurement.id) {
+            <tr>
+              <td><strong>{{ formatDate(measurement.measuredAt) }}</strong></td>
+              <td>{{ measurement.weightKg }} kg</td>
+              <td>{{ measurement.bmi || 'N/D' }}</td>
+              <td>{{ measurement.waistCm || 'N/D' }}</td>
+              <td>{{ measurement.hipCm || 'N/D' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </article>
+
+    <aside class="grid">
+      <article class="panel dark-summary">
+        <h2>Última medición</h2>
+        <strong>{{ selectedPatient()?.fullName }}</strong>
+        <p>{{ formatDate(latestMeasurement()?.measuredAt) }}</p>
+        <p>Peso {{ latestMeasurement()?.weightKg || 'N/D' }} kg · Cintura {{ latestMeasurement()?.waistCm || 'N/D' }} cm</p>
+      </article>
+      <article class="panel composition-card">
+        <div class="panel-header"><h2>Composición corporal</h2><svg lucideDroplet size="18"></svg></div>
+        <dl>
+          <div><dt>Grasa corporal</dt><dd>{{ latestComposition()?.bodyFatPercentage || 'N/D' }}%</dd></div>
+          <div><dt>Masa muscular</dt><dd>{{ latestComposition()?.muscleMassKg || 'N/D' }} kg</dd></div>
+          <div><dt>Agua corporal</dt><dd>{{ latestComposition()?.waterPercentage || 'N/D' }}%</dd></div>
+          <div><dt>Grasa visceral</dt><dd>{{ latestComposition()?.visceralFatLevel || 'N/D' }}</dd></div>
+          <div><dt>Edad metabólica</dt><dd>{{ latestComposition()?.metabolicAge || 'N/D' }}</dd></div>
+        </dl>
+      </article>
+    </aside>
+  </section>
+}
+
+<app-modal [open]="measurementModal()" title="Nueva medición" eyebrow="Evolución corporal" (close)="measurementModal.set(false)">
+  <form [formGroup]="measurementForm" (ngSubmit)="createMeasurement()">
+    <div class="form-grid">
+      <label class="field"><span>Fecha</span><input type="date" formControlName="measuredAt" /></label>
+      <label class="field"><span>Peso kg</span><input type="number" formControlName="weightKg" /></label>
+      <label class="field"><span>Talla cm</span><input type="number" formControlName="heightCm" /></label>
+      <label class="field"><span>Cintura cm</span><input type="number" formControlName="waistCm" /></label>
+      <label class="field"><span>Cadera cm</span><input type="number" formControlName="hipCm" /></label>
+    </div>
+    <div class="actions"><button class="btn secondary" type="button" (click)="measurementModal.set(false)">Cancelar</button><button class="btn" type="submit">Guardar</button></div>
+  </form>
+</app-modal>
+
+<app-modal [open]="compositionModal()" title="Registrar composición" eyebrow="Composición corporal" (close)="compositionModal.set(false)">
+  <form [formGroup]="compositionForm" (ngSubmit)="createComposition()">
+    <div class="form-grid">
+      <label class="field"><span>Grasa corporal %</span><input type="number" formControlName="bodyFatPercentage" /></label>
+      <label class="field"><span>Masa muscular kg</span><input type="number" formControlName="muscleMassKg" /></label>
+      <label class="field"><span>Agua corporal %</span><input type="number" formControlName="waterPercentage" /></label>
+      <label class="field"><span>Grasa visceral</span><input type="number" formControlName="visceralFatLevel" /></label>
+      <label class="field"><span>Masa ósea kg</span><input type="number" formControlName="boneMassKg" /></label>
+      <label class="field"><span>Edad metabólica</span><input type="number" formControlName="metabolicAge" /></label>
+    </div>
+    <div class="actions"><button class="btn secondary" type="button" (click)="compositionModal.set(false)">Cancelar</button><button class="btn" type="submit">Guardar</button></div>
+  </form>
+</app-modal>
