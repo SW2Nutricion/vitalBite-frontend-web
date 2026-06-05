@@ -6,24 +6,56 @@
     </a>
 
     <nav class="side-nav">
-      @for (item of navItems; track item.route) {
-        <a [routerLink]="item.route" routerLinkActive="active">
-          @switch (item.icon) {
-            @case ('dashboard') {
-              <svg lucideLayoutDashboard size="18"></svg>
+      @for (item of visibleNavItems(); track item.label) {
+        @if (item.route) {
+          <a [routerLink]="item.route" routerLinkActive="active">
+            @switch (item.icon) {
+              @case ('dashboard') {
+                <svg lucideLayoutDashboard size="18"></svg>
+              }
+              @case ('patients') {
+                <svg lucideUsers size="18"></svg>
+              }
+              @case ('appointments') {
+                <svg lucideCalendarDays size="18"></svg>
+              }
+              @case ('diets') {
+                <svg lucideUtensils size="18"></svg>
+              }
+              @case ('measurements') {
+                <svg lucideRuler size="18"></svg>
+              }
+              @case ('payments') {
+                <svg lucideCreditCard size="18"></svg>
+              }
+              @case ('reports') {
+                <svg lucideFolder size="18"></svg>
+              }
+              @case ('settings') {
+                <svg lucideSettings size="18"></svg>
+              }
             }
-            @case ('patients') {
-              <svg lucideUsers size="18"></svg>
+            <span>{{ item.label }}</span>
+          </a>
+        } @else {
+          <span class="side-nav-disabled">
+            @switch (item.icon) {
+              @case ('diets') {
+                <svg lucideUtensils size="18"></svg>
+              }
+              @case ('reports') {
+                <svg lucideFolder size="18"></svg>
+              }
+              @case ('payments') {
+                <svg lucideCreditCard size="18"></svg>
+              }
+              @case ('settings') {
+                <svg lucideSettings size="18"></svg>
+              }
             }
-            @case ('appointments') {
-              <svg lucideCalendarDays size="18"></svg>
-            }
-            @case ('measurements') {
-              <svg lucideRuler size="18"></svg>
-            }
-          }
-          <span>{{ item.label }}</span>
-        </a>
+            <span>{{ item.label }}</span>
+          </span>
+        }
       }
     </nav>
 
@@ -31,7 +63,7 @@
       <span class="avatar">{{ session.user()?.firstName?.charAt(0) || 'D' }}</span>
       <div>
         <strong>{{ session.user()?.firstName || 'Dra.' }} {{ session.user()?.lastName || 'Elena' }}</strong>
-        <small>Nutricionista</small>
+        <small>{{ roleLabel() }}</small>
       </div>
       <button class="icon-btn ghost" type="button" (click)="session.logout()" aria-label="Salir">
         <svg lucideLogOut size="16"></svg>
@@ -42,7 +74,7 @@
   <main class="workspace">
     <header class="topbar">
       <strong>{{ session.tenant()?.name || 'Clínica Central' }}</strong>
-      <span class="role-pill"><svg lucideActivity size="16"></svg> Nutricionista</span>
+      <span class="role-pill"><svg lucideActivity size="16"></svg> {{ roleLabel() }}</span>
     </header>
     <section class="page-slot">
       <router-outlet />

@@ -1,0 +1,252 @@
+<header class="page-header">
+  <div>
+    <h1>Pagos y suscripciones</h1>
+    <p>Consulta el plan activo, los limites comerciales y las opciones disponibles.</p>
+  </div>
+  <div class="payments-actions">
+    <button class="btn secondary" type="button" (click)="load()">
+      <svg lucideRefreshCw size="18"></svg>
+      Actualizar
+    </button>
+    <button class="btn" type="button" (click)="openRequestModal()">
+      <svg lucideBadgeDollarSign size="18"></svg>
+      Solicitar cambio
+    </button>
+  </div>
+</header>
+
+@if (loading()) {
+  <section class="dashboard-state">Cargando planes...</section>
+} @else if (error()) {
+  <section class="dashboard-state error">{{ error() }}</section>
+} @else {
+  <section class="subscription-hero">
+    <div>
+      <p class="eyebrow">Plan actual</p>
+      <h2>{{ subscription()?.planName || 'Sin plan asignado' }}</h2>
+      <p>
+        {{ session.tenant()?.name || 'Clinica Central' }} opera con una suscripcion
+        {{ statusInlineLabel(subscription()?.status) }}.
+      </p>
+    </div>
+    <div class="subscription-status">
+      <span><svg lucideCheckCircle2 size="18"></svg> {{ statusLabel(subscription()?.status) }}</span>
+      <strong>{{ currentPlan() ? priceLabel(currentPlan()!) : '$0/mes' }}</strong>
+      <small>Proxima revision: {{ dateLabel(subscription()?.nextReviewAt) }}</small>
+    </div>
+  </section>
+
+  <section class="payments-grid">
+    <article class="panel plan-overview">
+      <div class="panel-header">
+        <div>
+          <h2>Limites del tenant</h2>
+          <p class="muted">Condiciones visibles del plan contratado</p>
+        </div>
+      </div>
+      <div class="limit-list">
+        @for (limit of subscription()?.limits || []; track limit.key) {
+          <div>
+            <span>{{ limitLabel(limit) }}</span>
+            <strong>{{ limit.value }}</strong>
+          </div>
+        }
+      </div>
+    </article>
+
+    <article class="panel plan-overview dark-plan">
+      <div class="panel-header">
+        <div>
+          <h2>Estado administrativo</h2>
+          <p>La gestion de cobros reales se activara en una fase posterior.</p>
+        </div>
+      </div>
+      <div class="admin-summary">
+        <span><svg lucideCreditCard size="18"></svg> Catalogo activo</span>
+        <span><svg lucideBadgeDollarSign size="18"></svg> Precios mensuales USD</span>
+        <span><svg lucideCheckCircle2 size="18"></svg> Consulta protegida</span>
+      </div>
+    </article>
+  </section>
+
+  <section class="plans-section">
+    <div class="plans-title">
+      <div>
+        <p class="eyebrow">Planes disponibles</p>
+        <h2>Opciones comerciales</h2>
+      </div>
+      <span>{{ plans().length }} planes</span>
+    </div>
+
+    <div class="admin-plan-grid">
+      @for (plan of plans(); track plan.code) {
+        <article class="admin-plan-card" [class.active]="plan.code === subscription()?.planCode">
+          <div class="plan-card-head">
+            <span class="plan-card-icon">
+              @if (planIcon(plan) === 'clinic') {
+                <svg lucideBuilding2 size="22"></svg>
+              } @else {
+                <svg lucideUserRoundCheck size="22"></svg>
+              }
+            </span>
+            @if (plan.code === subscription()?.planCode) {
+              <strong>Plan actual</strong>
+            }
+          </div>
+          <h3>{{ plan.name }}</h3>
+          <p>{{ plan.description }}</p>
+          <div class="plan-price">{{ priceLabel(plan) }}</div>
+          <ul>
+            @for (item of plan.included; track item) {
+              <li><svg lucideCheckCircle2 size="15"></svg> {{ item }}</li>
+            }
+          </ul>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="requests-section">
+    <div class="plans-title">
+      <div>
+        <p class="eyebrow">Solicitudes recientes</p>
+        <h2>Historial de cambios</h2>
+      </div>
+      <span>{{ requests().length }} solicitudes</span>
+    </div>
+
+    @if (requests().length === 0) {
+      <div class="empty-request-state">No hay solicitudes de cambio registradas.</div>
+    } @else {
+      <div class="request-list">
+        @for (request of requests(); track request.requestId) {
+          <article>
+            <div>
+              <strong>{{ request.requestedPlanName }}</strong>
+              <small>Solicitado el {{ dateLabel(request.requestedAt) }}</small>
+              @if (request.comment) {
+                <p>{{ request.comment }}</p>
+              }
+              @if (request.resolvedAt) {
+                <small>Resuelto el {{ dateLabel(request.resolvedAt) }}</small>
+              }
+              @if (request.resolutionComment) {
+                <p>{{ request.resolutionComment }}</p>
+              }
+            </div>
+            <div class="request-actions">
+              <span
+                class="badge"
+                [class.warning]="requestBadgeClass(request.status) === 'warning'"
+                [class.danger]="requestBadgeClass(request.status) === 'danger'"
+              >
+                {{ requestStatusLabel(request.status) }}
+              </span>
+              @if (isPending(request)) {
+                <button class="btn secondary compact" type="button" (click)="openResolveModal(request, 'approve')">
+                  <svg lucideCheckCircle2 size="16"></svg>
+                  Aprobar
+                </button>
+                <button class="btn danger compact" type="button" (click)="openResolveModal(request, 'reject')">
+                  <svg lucideX size="16"></svg>
+                  Rechazar
+                </button>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+  <app-modal
+    [open]="modalOpen()"
+    title="Solicitar cambio de plan"
+    eyebrow="Gestion comercial"
+    (close)="modalOpen.set(false)"
+  >
+    <form class="plan-change-form" [formGroup]="form" (ngSubmit)="submitPlanChange()">
+      <div class="current-plan-box">
+        <small>Plan actual</small>
+        <strong>{{ subscription()?.planName || 'Sin plan asignado' }}</strong>
+        <span>{{ currentPlan() ? priceLabel(currentPlan()!) : '$0/mes' }}</span>
+      </div>
+
+      <label class="field">
+        <span>Plan destino</span>
+        <select formControlName="planCode">
+          @for (plan of plans(); track plan.code) {
+            <option [value]="plan.code">{{ plan.name }} - {{ priceLabel(plan) }}</option>
+          }
+        </select>
+      </label>
+
+      @if (targetPlan()) {
+        <div class="target-plan-note">
+          <strong>{{ targetPlan()?.name }}</strong>
+          <p>{{ targetPlan()?.description }}</p>
+        </div>
+      }
+
+      <label class="field">
+        <span>Comentario opcional</span>
+        <textarea rows="4" formControlName="comment" placeholder="Describe el motivo administrativo del cambio"></textarea>
+      </label>
+
+      @if (isCurrentPlanSelected()) {
+        <p class="form-message warning-text">Selecciona un plan distinto al actual.</p>
+      }
+
+      @if (formError()) {
+        <p class="form-message danger-text">{{ formError() }}</p>
+      }
+
+      <div class="actions">
+        <button class="btn secondary" type="button" (click)="modalOpen.set(false)">Cancelar</button>
+        <button class="btn" type="submit" [disabled]="saving() || isCurrentPlanSelected()">
+          {{ saving() ? 'Enviando...' : 'Enviar solicitud' }}
+        </button>
+      </div>
+    </form>
+  </app-modal>
+
+  <app-modal
+    [open]="resolveModalOpen()"
+    [title]="resolveTitle()"
+    eyebrow="Revision administrativa"
+    (close)="resolveModalOpen.set(false)"
+  >
+    <form class="plan-change-form" [formGroup]="resolveForm" (ngSubmit)="submitResolution()">
+      <div class="current-plan-box">
+        <small>Solicitud seleccionada</small>
+        <strong>{{ selectedRequest()?.requestedPlanName || 'Sin solicitud' }}</strong>
+        <span>{{ requestStatusLabel(selectedRequest()?.status) }}</span>
+      </div>
+
+      <label class="field">
+        <span>Comentario opcional</span>
+        <textarea
+          rows="4"
+          formControlName="comment"
+          placeholder="Agrega una nota administrativa para el historial"
+        ></textarea>
+      </label>
+
+      @if (resolveError()) {
+        <p class="danger-text">{{ resolveError() }}</p>
+      }
+
+      <div class="actions">
+        <button class="btn secondary" type="button" (click)="resolveModalOpen.set(false)">Cancelar</button>
+        <button
+          class="btn"
+          type="submit"
+          [class.danger]="resolveAction() === 'reject'"
+          [disabled]="resolving()"
+        >
+          {{ resolveButtonLabel() }}
+        </button>
+      </div>
+    </form>
+  </app-modal>
+}

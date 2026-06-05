@@ -1,16 +1,18 @@
-<header class="page-header">
+<header class="patient-detail-header">
   <div>
-    <a class="btn secondary" routerLink="/patients">
-      <svg lucideArrowLeft size="18"></svg>
-      Pacientes
-    </a>
     <h1>{{ patient()?.fullName || 'Expediente' }}</h1>
-    <p>{{ patient()?.nutritionGoal || 'Detalle clínico y nutricional' }}</p>
+    <p>Expediente nutricional y seguimiento del paciente</p>
   </div>
-  <a class="btn" routerLink="/appointments">
-    <svg lucideCalendarDays size="18"></svg>
-    Ver citas
-  </a>
+  <div class="patients-header-actions">
+    <a class="btn secondary outline" routerLink="/patients">
+      <svg lucideArrowLeft size="18"></svg>
+      Volver
+    </a>
+    <a class="btn" routerLink="/patients">
+      <svg lucidePencil size="18"></svg>
+      Editar paciente
+    </a>
+  </div>
 </header>
 
 @if (loading()) {
@@ -18,40 +20,102 @@
 } @else if (error()) {
   <div class="error-state">{{ error() }}</div>
 } @else {
-  <section class="kpi-grid">
-    <article class="kpi-card"><span class="kpi-icon"><svg lucideCalendarDays size="20"></svg></span><div><small>Citas</small><strong>{{ appointments().length }}</strong></div></article>
-    <article class="kpi-card"><span class="kpi-icon"><svg lucideRuler size="20"></svg></span><div><small>Mediciones</small><strong>{{ measurements().length }}</strong></div></article>
-    <article class="kpi-card"><span class="kpi-icon"><svg lucideRuler size="20"></svg></span><div><small>Último peso</small><strong>{{ measurements()[0]?.weightKg || 'N/D' }}</strong></div></article>
-    <article class="kpi-card"><span class="kpi-icon"><svg lucideRuler size="20"></svg></span><div><small>Último IMC</small><strong>{{ measurements()[0]?.bmi || 'N/D' }}</strong></div></article>
+  <section class="patient-tabs">
+    @for (tab of tabs; track tab) {
+      <button type="button" [class.active]="activeTab() === tab" (click)="activeTab.set(tab)">
+        {{ tab }}
+      </button>
+    }
   </section>
 
-  <section class="grid two-columns">
-    <article class="panel">
-      <div class="panel-header"><h2>Datos clínicos</h2></div>
-      <table class="data-table">
-        <tbody>
-          <tr><th>Email</th><td>{{ patient()?.email || 'Sin registro' }}</td></tr>
-          <tr><th>Teléfono</th><td>{{ patient()?.phone || 'Sin registro' }}</td></tr>
-          <tr><th>Estado</th><td><span class="badge">{{ patientStatusLabel(patient()?.status) }}</span></td></tr>
-          <tr><th>Notas</th><td>{{ patient()?.clinicalNotes || 'Sin notas clínicas' }}</td></tr>
-        </tbody>
-      </table>
-    </article>
+  <section class="patient-detail-layout">
+    <div class="patient-detail-main">
+      <article class="patient-summary-card">
+        <div class="patient-panel-title">
+          <div>
+            <h2>Resumen clinico y nutricional</h2>
+            <p>Informacion principal para la atencion del paciente</p>
+          </div>
+          <span class="review-pill">Revisar hoy</span>
+        </div>
 
-    <article class="panel">
-      <div class="panel-header"><h2>Citas recientes</h2></div>
-      <table class="data-table">
-        <thead><tr><th>Fecha</th><th>Estado</th><th>Motivo</th></tr></thead>
-        <tbody>
-          @for (appointment of appointments().slice(0, 5); track appointment.id) {
-            <tr>
-              <td>{{ formatDate(appointment.scheduledAt) }}</td>
-              <td><span class="badge">{{ appointmentStatusLabel(appointment.status) }}</span></td>
-              <td>{{ appointment.reason || 'Consulta nutricional' }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </article>
+        <div class="summary-mini-grid">
+          <div>
+            <small>Contacto</small>
+            <strong>{{ patient()?.email || 'Sin correo' }}</strong>
+            <span>{{ patient()?.phone || 'Sin telefono' }}</span>
+          </div>
+          <div>
+            <small>Objetivo</small>
+            <strong>{{ patient()?.nutritionGoal || 'Sin objetivo registrado' }}</strong>
+            <span>Plan activo desde mayo</span>
+          </div>
+          <div>
+            <small>Nacimiento</small>
+            <strong>{{ birthLabel() }}</strong>
+            <span>{{ genderLabel() }}</span>
+          </div>
+        </div>
+
+        <section class="clinical-note-card">
+          <h3>Notas clinicas</h3>
+          <p>{{ patient()?.clinicalNotes || 'Sin notas clinicas registradas.' }}</p>
+        </section>
+
+        <section class="activity-card">
+          <h3>Actividad reciente</h3>
+          <div>
+            <span>Cita de control</span>
+            <strong>{{ nextAppointmentTitle() }}</strong>
+          </div>
+          <div>
+            <span>Medidas registradas</span>
+            <strong>{{ latestMeasurementDate() }}</strong>
+          </div>
+          <div>
+            <span>Dieta activa</span>
+            <strong>Plan mayo</strong>
+          </div>
+          <div>
+            <span>Seguimiento pendiente</span>
+            <strong class="danger-text">Revisar</strong>
+          </div>
+        </section>
+      </article>
+    </div>
+
+    <aside class="patient-detail-side">
+      <article class="next-appointment-card">
+        <div class="side-card-title">
+          <h2>Proxima cita</h2>
+          <span>{{ nextAppointment() ? appointmentStatusLabel(nextAppointment()!.status) : 'Pendiente' }}</span>
+        </div>
+        <strong>{{ nextAppointmentTitle() }}</strong>
+        <p>{{ nextAppointment()?.reason || 'Control de medidas y adherencia' }}</p>
+        <ul>
+          <li>Actualizar peso y cintura</li>
+          <li>Revisar registro de comidas</li>
+          <li>Ajustar plan si es necesario</li>
+        </ul>
+      </article>
+
+      <article class="related-modules-card">
+        <h2>Modulos relacionados</h2>
+        <a routerLink="/appointments"><span>Citas</span><svg lucideCalendarDays size="16"></svg></a>
+        <a routerLink="/body-measurements"><span>Medidas</span><svg lucideRuler size="16"></svg></a>
+        <span><span>Seguimiento</span><svg lucideActivity size="16"></svg></span>
+        <span><span>Dietas</span><svg lucideUtensils size="16"></svg></span>
+        <span><span>Documentos</span><svg lucideFolder size="16"></svg></span>
+      </article>
+
+      <article class="patient-actions-card">
+        <h2>Acciones del paciente</h2>
+        <div>
+          <a class="btn" routerLink="/patients">Editar</a>
+          <button class="btn secondary" type="button" (click)="archive()">Archivar</button>
+        </div>
+        <p><span></span> Cambios guardados</p>
+      </article>
+    </aside>
   </section>
 }

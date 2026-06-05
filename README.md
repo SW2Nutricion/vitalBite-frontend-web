@@ -26,13 +26,15 @@ La aplicación abre por defecto en `http://localhost:4200`.
 
 ## Flujo demo
 
-- Login demo visual en `/login`.
-- El ingreso consulta el contexto demo del Core.
-- No usa JWT todavía.
+- Login real en `/login` contra el Core.
+- Registro profesional en `/register`.
+- El token de sesión se guarda en `localStorage` y se envía como Bearer en operaciones GraphQL protegidas.
+- Las rutas internas usan guards de autenticación, rol y permiso por módulo.
 
 ## Pantallas implementadas
 
 - Inicio operativo.
+- Login y registro.
 - Pacientes.
 - Detalle de paciente.
 - Citas.

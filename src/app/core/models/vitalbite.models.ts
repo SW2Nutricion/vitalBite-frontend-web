@@ -92,6 +92,56 @@ export interface BodyComposition {
   updatedAt: string;
 }
 
+export interface PlanLimit {
+  key: string;
+  value: string;
+}
+
+export interface SubscriptionPlan {
+  code: string;
+  name: string;
+  description: string;
+  priceUsd: number;
+  billingPeriod: string;
+  audience: string;
+  included: string[];
+  limits: PlanLimit[];
+}
+
+export interface TenantSubscription {
+  tenantId: string;
+  planCode: string;
+  planName: string;
+  status: string;
+  billingPeriod: string;
+  startedAt: string;
+  nextReviewAt: string;
+  limits: PlanLimit[];
+}
+
+export interface PlanChangeRequest {
+  requestId: string;
+  tenantId: string;
+  currentPlanCode: string;
+  requestedPlanCode: string;
+  requestedPlanName: string;
+  status: string;
+  comment?: string | null;
+  requestedAt: string;
+  resolutionComment?: string | null;
+  resolvedAt?: string | null;
+}
+
+export interface RequestPlanChangeInput {
+  planCode: string;
+  comment?: string | null;
+}
+
+export interface ResolvePlanChangeInput {
+  requestId: string;
+  comment?: string | null;
+}
+
 export interface CreatePatientInput {
   firstName: string;
   lastName: string;

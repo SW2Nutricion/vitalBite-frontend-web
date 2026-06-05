@@ -1,82 +1,118 @@
-<header class="page-header">
+<header class="patients-header">
   <div>
     <h1>Pacientes</h1>
     <p>Gestiona tus pacientes y entra a su expediente nutricional.</p>
   </div>
-  <button class="btn" type="button" (click)="openCreate()">
-    <svg lucidePlus size="18"></svg>
-    Nuevo paciente
-  </button>
+  <div class="patients-header-actions">
+    <button class="btn secondary outline" type="button">
+      <svg lucideFilter size="17"></svg>
+      Filtros
+    </button>
+    <button class="btn" type="button" (click)="openCreate()">
+      <svg lucideUserRoundPlus size="18"></svg>
+      Nuevo paciente
+    </button>
+  </div>
 </header>
 
-<section class="kpi-grid">
-  <article class="kpi-card">
-    <span class="kpi-icon"><svg lucideUsers size="20"></svg></span>
+<section class="patients-kpis">
+  <article class="patient-kpi">
+    <span class="patient-kpi-icon"><svg lucideUsers size="22"></svg></span>
     <div><small>Activos</small><strong>{{ activeCount() }}</strong></div>
   </article>
-  <article class="kpi-card">
-    <span class="kpi-icon"><svg lucideUsers size="20"></svg></span>
+  <article class="patient-kpi">
+    <span class="patient-kpi-icon amber"><svg lucideUserRound size="22"></svg></span>
     <div><small>Inactivos</small><strong>{{ inactiveCount() }}</strong></div>
   </article>
-  <article class="kpi-card">
-    <span class="kpi-icon"><svg lucideArchive size="20"></svg></span>
+  <article class="patient-kpi">
+    <span class="patient-kpi-icon"><svg lucideArchive size="22"></svg></span>
     <div><small>Archivados</small><strong>{{ archivedCount() }}</strong></div>
   </article>
-  <article class="kpi-card">
-    <span class="kpi-icon"><svg lucideFilter size="20"></svg></span>
-    <div><small>Total visible</small><strong>{{ patients().length }}</strong></div>
+  <article class="patient-kpi">
+    <span class="patient-kpi-icon red"><svg lucideClipboardCheck size="22"></svg></span>
+    <div><small>Seguimiento</small><strong>{{ followUpCount() }}</strong></div>
   </article>
 </section>
 
-<form class="toolbar" [formGroup]="filters" (ngSubmit)="load()">
-  <svg lucideSearch size="18"></svg>
-  <input class="search-input" formControlName="search" placeholder="Buscar por nombre, email o teléfono" />
-  <select formControlName="status">
-    <option value="">Todos</option>
-    <option value="ACTIVE">Activos</option>
-    <option value="INACTIVE">Inactivos</option>
-    <option value="ARCHIVED">Archivados</option>
-  </select>
+<form class="patients-filterbar" [formGroup]="filters" (ngSubmit)="load()">
+  <label class="patient-search-field">
+    <svg lucideSearch size="18"></svg>
+    <input formControlName="search" placeholder="Buscar por nombre, email o telefono" />
+  </label>
+  <label class="select-chip">
+    <span>Estado</span>
+    <select formControlName="status">
+      <option value="">Todos</option>
+      <option value="ACTIVE">Activos</option>
+      <option value="INACTIVE">Alertas</option>
+      <option value="ARCHIVED">Pendientes</option>
+    </select>
+    <svg lucideChevronDown size="15"></svg>
+  </label>
+  <label class="select-chip">
+    <span>Registro</span>
+    <select formControlName="register">
+      <option value="">Todos</option>
+      <option value="TODAY">Hoy</option>
+      <option value="WEEK">Semana</option>
+      <option value="MONTH">Mes</option>
+    </select>
+    <svg lucideCalendarDays size="15"></svg>
+  </label>
   <button class="btn" type="submit">Aplicar</button>
 </form>
 
-<section class="panel">
-  <div class="panel-header">
+<section class="patients-table-card">
+  <div class="patients-table-header">
     <div>
       <h2>Tabla de pacientes</h2>
-      <p class="muted">Listado central con acciones por fila</p>
+      <p>Listado central con filtros y acciones por fila</p>
+    </div>
+    <div class="patients-table-actions">
+      <button class="btn secondary outline" type="button">
+        <svg lucideFilter size="17"></svg>
+        Filtros
+      </button>
+      <button class="btn" type="button" (click)="openCreate()">
+        <svg lucideUserRoundPlus size="17"></svg>
+        Paciente
+      </button>
     </div>
   </div>
 
   @if (loading()) {
-    <div class="loading-state">Cargando pacientes...</div>
+    <div class="empty-state">Cargando pacientes...</div>
   } @else if (error()) {
     <div class="error-state">{{ error() }}</div>
-  } @else if (!patients().length) {
+  } @else if (!visiblePatients().length) {
     <div class="empty-state">No hay pacientes para los filtros seleccionados.</div>
   } @else {
-    <table class="data-table">
+    <table class="patients-table">
       <thead>
         <tr>
           <th>Paciente</th>
           <th>Estado</th>
           <th>Objetivo</th>
-          <th>Contacto</th>
-          <th>Acción</th>
+          <th>Ultima cita</th>
+          <th>Accion</th>
         </tr>
       </thead>
       <tbody>
-        @for (patient of patients(); track patient.id) {
+        @for (patient of visiblePatients(); track patient.id; let index = $index) {
           <tr>
             <td><strong>{{ patient.fullName }}</strong></td>
-            <td><span class="badge" [class.warning]="patient.status === 'INACTIVE'" [class.danger]="patient.status === 'ARCHIVED'">{{ statusLabel(patient.status) }}</span></td>
-            <td>{{ patient.nutritionGoal || 'Sin objetivo' }}</td>
-            <td>{{ patient.email || patient.phone || 'Sin contacto' }}</td>
-            <td class="row-actions">
-              <a class="btn secondary" [routerLink]="['/patients', patient.id]">Ver detalle</a>
-              <button class="btn secondary" type="button" (click)="openEdit(patient)">Editar</button>
-              @if (patient.status !== 'ARCHIVED') {
-                <button class="btn danger" type="button" (click)="archive(patient)">Archivar</button>
+            <td>
+              <span class="badge" [class.warning]="statusBadgeClass(patient.status) === 'warning'" [class.danger]="statusBadgeClass(patient.status) === 'danger'">
+                {{ statusLabel(patient.status) }}
+              </span>
+            </td>
+            <td><strong>{{ patient.nutritionGoal || 'Sin objetivo' }}</strong></td>
+            <td>{{ latestAppointmentLabel(patient.id) }}</td>
+            <td>
+              @if (isDetailAction(index)) {
+                <a class="table-action" [routerLink]="['/patients', patient.id]">{{ rowAction(index) }}</a>
+              } @else {
+                <span class="table-action muted-action">{{ rowAction(index) }}</span>
               }
             </td>
           </tr>
@@ -88,39 +124,90 @@
 
 <app-modal
   [open]="modalOpen()"
-  [title]="editing() ? 'Editar paciente' : 'Nuevo paciente'"
-  eyebrow="Expediente nutricional"
+  [title]="editing() ? 'Editar paciente' : 'Registrar nuevo paciente'"
+  eyebrow="PACIENTES"
   (close)="modalOpen.set(false)"
 >
-  <form [formGroup]="form" (ngSubmit)="save()">
-    <div class="form-grid">
-      <label class="field"><span>Nombre</span><input formControlName="firstName" /></label>
-      <label class="field"><span>Apellido</span><input formControlName="lastName" /></label>
-      <label class="field"><span>Email</span><input formControlName="email" type="email" /></label>
-      <label class="field"><span>Teléfono</span><input formControlName="phone" /></label>
-      <label class="field"><span>Nacimiento</span><input formControlName="birthDate" type="date" /></label>
-      <label class="field">
-        <span>Género</span>
-        <select formControlName="gender">
-          <option value="NOT_SPECIFIED">No especificado</option>
-          <option value="FEMALE">Femenino</option>
-          <option value="MALE">Masculino</option>
-          <option value="OTHER">Otro</option>
-        </select>
-      </label>
-      <label class="field"><span>Estado</span>
-        <select formControlName="status">
-          <option value="ACTIVE">Activo</option>
-          <option value="INACTIVE">Inactivo</option>
-          <option value="ARCHIVED">Archivado</option>
-        </select>
-      </label>
-      <label class="field wide"><span>Objetivo</span><input formControlName="nutritionGoal" /></label>
-      <label class="field wide"><span>Notas clínicas</span><textarea formControlName="clinicalNotes" rows="4"></textarea></label>
+  <form class="patient-modal-form" [formGroup]="form" (ngSubmit)="save()">
+    <div class="patient-modal-summary">
+      <div>
+        <small>Tenant</small>
+        <strong>{{ session.tenant()?.name || 'Clinica Central' }}</strong>
+      </div>
+      <div>
+        <small>Responsable</small>
+        <strong>{{ session.user()?.firstName || 'Dra.' }} {{ session.user()?.lastName || 'Elena Cruz' }}</strong>
+      </div>
+      <div>
+        <small>Estado inicial</small>
+        <strong>{{ editing() ? statusLabel(editing()!.status) : 'Activo' }}</strong>
+      </div>
     </div>
-    <div class="actions">
-      <button class="btn secondary" type="button" (click)="modalOpen.set(false)">Cancelar</button>
-      <button class="btn" type="submit">Guardar</button>
+
+    <div class="patient-form-grid">
+      <label class="field">
+        <span>Nombre completo</span>
+        <div class="input-with-icon">
+          <svg lucideUserRound size="17"></svg>
+          <input formControlName="fullName" placeholder="Maria Rodriguez" />
+        </div>
+      </label>
+      <label class="field">
+        <span>Correo electronico</span>
+        <div class="input-with-icon">
+          <svg lucideMail size="17"></svg>
+          <input formControlName="email" type="email" placeholder="maria.rodriguez@correo.com" />
+        </div>
+      </label>
+      <label class="field">
+        <span>Telefono</span>
+        <div class="input-with-icon">
+          <svg lucidePhone size="17"></svg>
+          <input formControlName="phone" placeholder="+591 71234567" />
+        </div>
+      </label>
+      <label class="field">
+        <span>Estado del paciente</span>
+        <div class="input-with-icon">
+          <svg lucideChevronDown size="17"></svg>
+          <select formControlName="status">
+            <option value="ACTIVE">Activo</option>
+            <option value="INACTIVE">Alerta</option>
+          </select>
+        </div>
+      </label>
+      <label class="field">
+        <span>Objetivo nutricional</span>
+        <div class="input-with-icon">
+          <svg lucideTarget size="17"></svg>
+          <input formControlName="nutritionGoal" placeholder="Reducir grasa corporal" />
+        </div>
+      </label>
+      <label class="field">
+        <span>Nutricionista asignado</span>
+        <div class="input-with-icon readonly">
+          <svg lucideStethoscope size="17"></svg>
+          <input
+            [value]="(session.user()?.firstName || 'Dra.') + ' ' + (session.user()?.lastName || 'Elena Cruz')"
+            readonly
+          />
+        </div>
+      </label>
+      <label class="field wide">
+        <span>Antecedentes y observaciones iniciales</span>
+        <textarea formControlName="clinicalNotes" rows="5"></textarea>
+      </label>
+    </div>
+
+    <div class="patient-modal-actions">
+      <p>La cuenta se crea dentro del tenant actual y puede editarse luego.</p>
+      <div>
+        <button class="btn secondary" type="button" (click)="modalOpen.set(false)">Cancelar</button>
+        <button class="btn" type="submit">
+          <svg lucideUserRoundPlus size="17"></svg>
+          {{ editing() ? 'Guardar cambios' : 'Crear paciente' }}
+        </button>
+      </div>
     </div>
   </form>
 </app-modal>

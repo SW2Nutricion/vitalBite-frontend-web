@@ -100,6 +100,23 @@ export class SessionService {
     return data;
   }
 
+  hasToken() {
+    return Boolean(localStorage.getItem(AUTH_TOKEN_STORAGE_KEY));
+  }
+
+  async ensureContext() {
+    if (this.user() && this.tenant()) {
+      return true;
+    }
+
+    try {
+      await this.loadContext();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async login(email: string, password: string) {
     this.loading.set(true);
     try {
@@ -136,10 +153,14 @@ export class SessionService {
   }
 
   logout() {
+    this.clearSession();
+    void this.router.navigateByUrl('/login');
+  }
+
+  clearSession() {
     localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
     void this.graphql.clearStore();
     this.user.set(null);
     this.tenant.set(null);
-    void this.router.navigateByUrl('/login');
   }
 }

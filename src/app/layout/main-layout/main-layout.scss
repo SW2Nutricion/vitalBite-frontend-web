@@ -47,7 +47,8 @@
   gap: 8px;
 }
 
-.side-nav a {
+.side-nav a,
+.side-nav-disabled {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -63,6 +64,11 @@
 .side-nav a:hover {
   background: rgba(255, 255, 255, 0.15);
   color: white;
+}
+
+.side-nav-disabled {
+  color: rgba(255, 255, 255, 0.78);
+  cursor: default;
 }
 
 .profile-card {
