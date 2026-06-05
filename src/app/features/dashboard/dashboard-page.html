@@ -1,79 +1,242 @@
-<header class="page-header">
+<header class="dashboard-header">
   <div>
-    <h1>Inicio</h1>
-    <p>Resumen operativo de pacientes, agenda y evolución reciente.</p>
+    <h1>Panel principal</h1>
+    <p>Resumen de la clínica, pacientes y seguimiento nutricional.</p>
   </div>
-  <a class="btn" routerLink="/appointments">
-    <svg lucideCalendarDays size="18"></svg>
-    Ver agenda
-  </a>
+  <div class="dashboard-actions">
+    <button class="btn secondary" type="button">
+      <svg lucideFilter size="17"></svg>
+      Filtros
+    </button>
+    <button class="btn" type="button">
+      <svg lucideDownload size="17"></svg>
+      Exportar reporte
+    </button>
+  </div>
 </header>
 
 @if (loading()) {
-  <div class="loading-state">Cargando indicadores...</div>
+  <div class="dashboard-state">Cargando indicadores reales...</div>
 } @else if (error()) {
-  <div class="error-state">{{ error() }}</div>
+  <div class="dashboard-state error">{{ error() }}</div>
 } @else {
-  <section class="kpi-grid">
-    <article class="kpi-card">
-      <span class="kpi-icon"><svg lucideUsers size="20"></svg></span>
-      <div><small>Pacientes activos</small><strong>{{ activePatients() }}</strong></div>
+  <section class="dashboard-kpis">
+    <article class="dashboard-kpi">
+      <span class="metric-icon green"><svg lucideUsers size="22"></svg></span>
+      <div>
+        <small>Pacientes activos</small>
+        <strong>{{ activePatients() }}</strong>
+      </div>
     </article>
-    <article class="kpi-card">
-      <span class="kpi-icon"><svg lucideCalendarDays size="20"></svg></span>
-      <div><small>Citas pendientes</small><strong>{{ pendingAppointments() }}</strong></div>
+
+    <article class="dashboard-kpi">
+      <span class="metric-icon amber"><svg lucideCalendarDays size="22"></svg></span>
+      <div>
+        <small>Citas programadas</small>
+        <strong>{{ pendingAppointments() }}</strong>
+      </div>
     </article>
-    <article class="kpi-card">
-      <span class="kpi-icon"><svg lucideClipboardList size="20"></svg></span>
-      <div><small>Citas completadas</small><strong>{{ completedAppointments() }}</strong></div>
+
+    <article class="dashboard-kpi">
+      <span class="metric-icon green"><svg lucideActivity size="22"></svg></span>
+      <div>
+        <small>Último IMC</small>
+        <strong>{{ latestMeasurement()?.bmi ? formatNumber(latestMeasurement()?.bmi) : 'N/D' }}</strong>
+      </div>
     </article>
-    <article class="kpi-card">
-      <span class="kpi-icon"><svg lucideRuler size="20"></svg></span>
-      <div><small>Último IMC</small><strong>{{ latestMeasurement()?.bmi || 'N/D' }}</strong></div>
+
+    <article class="dashboard-kpi">
+      <span class="metric-icon red"><svg lucideAlertTriangle size="22"></svg></span>
+      <div>
+        <small>Riesgo nutricional</small>
+        <strong>N/D</strong>
+      </div>
     </article>
   </section>
 
-  <section class="grid dashboard-grid">
-    <article class="panel">
-      <div class="panel-header">
-        <div>
-          <h2>Próximas citas</h2>
-          <p class="muted">Agenda clínica más cercana</p>
+  <section class="dashboard-grid">
+    <div class="main-column">
+      <article class="dashboard-panel evolution-panel">
+        <div class="panel-title">
+          <div>
+            <h2>Evolución de medidas</h2>
+            <p>Datos reales del primer paciente con mediciones registradas.</p>
+          </div>
+          <div class="range-tabs" aria-label="Rango de evolución">
+            <span>7 días</span>
+            <strong>30 días</strong>
+            <span>90 días</span>
+          </div>
         </div>
-      </div>
-      <table class="data-table">
-        <thead>
-          <tr><th>Paciente</th><th>Fecha</th><th>Estado</th></tr>
-        </thead>
-        <tbody>
-          @for (appointment of appointments().slice(0, 5); track appointment.id) {
-            <tr>
-              <td><strong>{{ appointment.patientFullName }}</strong></td>
-              <td>{{ formatDate(appointment.scheduledAt) }}</td>
-              <td><span class="badge">{{ statusLabel(appointment.status) }}</span></td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </article>
 
-    <article class="panel">
-      <div class="panel-header">
-        <div>
-          <h2>Evolución reciente</h2>
-          <p class="muted">Paciente con evolución registrada</p>
-        </div>
-      </div>
-      <div class="chart-bars">
-        @for (measurement of measurements().slice(0, 6).reverse(); track measurement.id; let last = $last) {
-          <span
-            class="bar"
-            [class.featured]="last"
-            [style.height.px]="40 + (measurement.weightKg || 0)"
-            [title]="measurement.weightKg + ' kg'"
-          ></span>
+        @if (hasMeasurements()) {
+          <div class="chart-card">
+            @for (bar of evolutionBars(); track bar.id) {
+              <div class="chart-item">
+                <span
+                  class="chart-bar"
+                  [class.featured]="bar.featured"
+                  [style.height.%]="bar.height"
+                  [title]="bar.value"
+                ></span>
+                <small>{{ bar.label }}</small>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-dashboard-block">
+            <svg lucideRuler size="28"></svg>
+            <strong>Sin mediciones todavía</strong>
+            <p>Registra peso, talla e IMC para visualizar la evolución corporal.</p>
+            <a class="btn secondary" routerLink="/body-measurements">Registrar medidas</a>
+          </div>
         }
-      </div>
-    </article>
+
+        <div class="measurement-summary">
+          <div>
+            <small>IMC promedio</small>
+            <strong>{{ latestMeasurement()?.bmi ? formatNumber(latestMeasurement()?.bmi) : 'N/D' }}</strong>
+          </div>
+          <div>
+            <small>Variación cintura</small>
+            <strong>{{ waistVariation() }}</strong>
+          </div>
+          <div class="highlight">
+            <small>Alertas nuevas</small>
+            <strong>0</strong>
+          </div>
+        </div>
+      </article>
+
+      <article class="dashboard-panel follow-up-panel">
+        <div class="panel-title">
+          <div>
+            <h2>Pacientes que requieren seguimiento</h2>
+            <p>Listado real de pacientes activos de la clínica.</p>
+          </div>
+          <div class="panel-actions">
+            <button class="btn secondary" type="button">
+              <svg lucideFilter size="17"></svg>
+              Filtros
+            </button>
+            <a class="btn" routerLink="/patients">
+              <svg lucidePlus size="17"></svg>
+              Paciente
+            </a>
+          </div>
+        </div>
+
+        @if (patientRows().length > 0) {
+          <div class="dashboard-table-wrap">
+            <table class="dashboard-table">
+              <thead>
+                <tr>
+                  <th>Paciente</th>
+                  <th>Objetivo</th>
+                  <th>Riesgo</th>
+                  <th>Adherencia</th>
+                  <th>Última cita</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (patient of patientRows(); track patient.id) {
+                  <tr>
+                    <td><strong>{{ patient.name }}</strong></td>
+                    <td>{{ patient.goal }}</td>
+                    <td><span class="soft-badge neutral">{{ patient.risk }}</span></td>
+                    <td>{{ patient.adherence }}</td>
+                    <td>{{ patient.lastAppointment }}</td>
+                    <td><a class="table-link" [routerLink]="['/patients', patient.id]">Ver</a></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="empty-dashboard-block compact">
+            <svg lucideUsers size="26"></svg>
+            <strong>Aún no hay pacientes activos</strong>
+            <p>Crea tu primer paciente para comenzar el seguimiento nutricional.</p>
+            <a class="btn secondary" routerLink="/patients">Ir a pacientes</a>
+          </div>
+        }
+      </article>
+    </div>
+
+    <aside class="side-column">
+      <article class="dashboard-panel dark-card">
+        <h2>Grupos de pacientes</h2>
+        <p>Clasificación basada solo en datos disponibles.</p>
+        <div class="group-list">
+          <div>
+            <span class="dot green"></span>
+            <strong>Activos</strong>
+            <b>{{ activePatients() }}</b>
+          </div>
+          <div>
+            <span class="dot amber"></span>
+            <strong>Con mediciones</strong>
+            <b>{{ hasMeasurements() ? 1 : 0 }}</b>
+          </div>
+          <div>
+            <span class="dot red"></span>
+            <strong>Riesgo alto</strong>
+            <b>N/D</b>
+          </div>
+        </div>
+        <div class="scatter-empty">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </article>
+
+      <article class="dashboard-panel">
+        <div class="mini-card-header">
+          <h2>Próximas citas</h2>
+          <span>{{ upcomingAppointments().length }}</span>
+        </div>
+        @if (upcomingAppointments().length > 0) {
+          <div class="appointment-list">
+            @for (appointment of upcomingAppointments().slice(0, 3); track appointment.id) {
+              <div>
+                <strong>{{ appointment.patientFullName }}</strong>
+                <small>{{ formatDate(appointment.scheduledAt) }} · {{ statusLabel(appointment.status) }}</small>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="mini-empty">
+            <p>No hay citas programadas.</p>
+            <a routerLink="/appointments">Agendar cita</a>
+          </div>
+        }
+      </article>
+
+      <article class="dashboard-panel dark-status">
+        <h2>Estado de datos</h2>
+        <div>
+          <span>Pacientes</span>
+          <strong>{{ patients().length > 0 ? 'Con datos' : 'Vacío' }}</strong>
+        </div>
+        <div>
+          <span>Citas</span>
+          <strong>{{ appointments().length > 0 ? 'Con datos' : 'Vacío' }}</strong>
+        </div>
+        <div>
+          <span>Mediciones</span>
+          <strong>{{ measurements().length > 0 ? 'Con datos' : 'Vacío' }}</strong>
+        </div>
+      </article>
+
+      <article class="dashboard-panel nutrition-card">
+        <div class="mini-card-header">
+          <h2>Cálculo nutricional</h2>
+          <span>N/D</span>
+        </div>
+        <p>Sin datos suficientes para calcular adherencia, déficit o distribución nutricional.</p>
+        <div class="progress-line"><span style="width: 0%"></span></div>
+        <a routerLink="/body-measurements">Completar mediciones</a>
+      </article>
+    </aside>
   </section>
 }

@@ -10,7 +10,7 @@
   color: white;
   background:
     linear-gradient(rgba(22, 63, 42, 0.94), rgba(22, 63, 42, 0.96)),
-    url('/assets/login-clinic.png');
+    url('/assets/landing-hero.jpg');
   background-size: cover;
   display: flex;
   flex-direction: column;
@@ -80,6 +80,15 @@ form {
 .compact {
   padding: 8px;
   text-align: left;
+}
+
+.register-link {
+  display: block;
+  margin-top: 16px;
+  color: #719078;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 700;
 }
 
 @media (max-width: 860px) {

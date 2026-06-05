@@ -1,0 +1,100 @@
+<main class="register-shell">
+  <section class="register-hero">
+    <a class="brand" routerLink="/">
+      <span><svg lucideHeartPulse size="26"></svg></span>
+      <strong>VitalBite</strong>
+    </a>
+
+    <div class="hero-copy">
+      <h1>Un espacio seguro para iniciar la atencion</h1>
+      <p>
+        Crea una cuenta profesional para organizar pacientes, citas, mediciones y reportes desde
+        una experiencia clara y confiable.
+      </p>
+    </div>
+
+    <article class="preview-card">
+      <h2>Cuenta profesional</h2>
+      <div class="preview-image"></div>
+      <div class="preview-tags">
+        <span>Pacientes</span>
+        <span>Citas</span>
+        <span>Reportes</span>
+      </div>
+    </article>
+  </section>
+
+  <section class="register-panel-wrap">
+    <div class="register-panel">
+      <p class="eyebrow">Registro profesional</p>
+      <h2>Crear cuenta</h2>
+      <p class="panel-copy">Completa tus datos para acceder al panel de atencion.</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <label class="field">
+          <span>Nombre completo</span>
+          <div class="input-shell">
+            <svg lucideUser size="18"></svg>
+            <input formControlName="fullName" autocomplete="name" placeholder="Dra. Mariana Perez" />
+          </div>
+        </label>
+
+        <label class="field">
+          <span>Correo electronico</span>
+          <div class="input-shell">
+            <svg lucideMail size="18"></svg>
+            <input formControlName="email" type="email" autocomplete="email" placeholder="mariana@clinica.com" />
+          </div>
+        </label>
+
+        <label class="field">
+          <span>Area profesional</span>
+          <div class="input-shell">
+            <svg lucideBriefcaseMedical size="18"></svg>
+            <input formControlName="professionalArea" placeholder="Nutricion y salud" />
+          </div>
+        </label>
+
+        <label class="field">
+          <span>Centro de atencion</span>
+          <div class="input-shell">
+            <svg lucideBuilding2 size="18"></svg>
+            <input formControlName="clinicName" placeholder="Clinica Los Pinos" />
+          </div>
+        </label>
+
+        <label class="field">
+          <span>Celular</span>
+          <div class="input-shell">
+            <svg lucidePhone size="18"></svg>
+            <input formControlName="phone" autocomplete="tel" placeholder="+591 700 12345" />
+          </div>
+        </label>
+
+        <label class="field">
+          <span>Contrasena</span>
+          <div class="input-shell">
+            <svg lucideLock size="18"></svg>
+            <input formControlName="password" type="password" autocomplete="new-password" placeholder="Minimo 6 caracteres" />
+          </div>
+        </label>
+
+        <p class="review-note">
+          <svg lucideShieldCheck size="18"></svg>
+          Crearemos tu centro de atencion y protegeremos el acceso a la informacion de pacientes.
+        </p>
+
+        @if (error()) {
+          <p class="error-state compact">{{ error() }}</p>
+        }
+
+        <button class="btn" type="submit" [disabled]="session.loading()">
+          {{ session.loading() ? 'Creando cuenta...' : 'Crear cuenta' }}
+          <svg lucideArrowRight size="18"></svg>
+        </button>
+      </form>
+    </div>
+
+    <a class="login-link" routerLink="/login">Ya tienes cuenta? Inicia sesion</a>
+  </section>
+</main>

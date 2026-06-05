@@ -1,11 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { LucideHeartPulse, LucideLogIn } from '@lucide/angular';
 import { SessionService } from '../../../core/services/session.service';
 
 @Component({
   selector: 'app-login-page',
-  imports: [ReactiveFormsModule, LucideHeartPulse, LucideLogIn],
+  imports: [ReactiveFormsModule, RouterLink, LucideHeartPulse, LucideLogIn],
   templateUrl: './login-page.html',
   styleUrl: './login-page.scss',
 })
@@ -29,9 +30,10 @@ export class LoginPage {
 
     this.error.set('');
     try {
-      await this.session.demoLogin();
+      const { email, password } = this.form.getRawValue();
+      await this.session.login(email, password);
     } catch {
-      this.error.set('No se pudo iniciar la sesión demo. Verifica que el servicio esté activo.');
+      this.error.set('No se pudo iniciar sesion. Verifica tus credenciales y el servicio.');
     }
   }
 }

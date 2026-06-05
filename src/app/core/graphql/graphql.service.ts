@@ -3,6 +3,8 @@ import { ApolloClient, InMemoryCache, gql } from '@apollo/client/core';
 import { HttpLink } from '@apollo/client/link/http';
 import { environment } from '../../../environments/environment';
 
+export const AUTH_TOKEN_STORAGE_KEY = 'vitalbite.accessToken';
+
 @Injectable({ providedIn: 'root' })
 export class GraphqlService {
   private readonly client: ApolloClient;
@@ -12,7 +14,19 @@ export class GraphqlService {
       cache: new InMemoryCache(),
       link: new HttpLink({
         uri: environment.graphqlUrl,
-        fetch,
+        fetch: (uri, options) => {
+          const headers = new Headers(options?.headers as HeadersInit);
+          const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+
+          if (token) {
+            headers.set('Authorization', `Bearer ${token}`);
+          }
+
+          return fetch(uri, {
+            ...options,
+            headers,
+          });
+        },
       }),
       defaultOptions: {
         watchQuery: { fetchPolicy: 'network-only' },
@@ -42,5 +56,9 @@ export class GraphqlService {
 
     void this.client.clearStore();
     return result.data as TData;
+  }
+
+  async clearStore() {
+    await this.client.clearStore();
   }
 }

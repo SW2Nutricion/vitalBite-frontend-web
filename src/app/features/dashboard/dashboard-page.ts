@@ -1,8 +1,12 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
+  LucideActivity,
+  LucideAlertTriangle,
   LucideCalendarDays,
-  LucideClipboardList,
+  LucideDownload,
+  LucideFilter,
+  LucidePlus,
   LucideRuler,
   LucideUsers,
 } from '@lucide/angular';
@@ -14,7 +18,17 @@ import { PatientsService } from '../../core/services/patients.service';
 
 @Component({
   selector: 'app-dashboard-page',
-  imports: [RouterLink, LucideCalendarDays, LucideClipboardList, LucideRuler, LucideUsers],
+  imports: [
+    RouterLink,
+    LucideActivity,
+    LucideAlertTriangle,
+    LucideCalendarDays,
+    LucideDownload,
+    LucideFilter,
+    LucidePlus,
+    LucideRuler,
+    LucideUsers,
+  ],
   templateUrl: './dashboard-page.html',
 })
 export class DashboardPage implements OnInit {
@@ -24,19 +38,73 @@ export class DashboardPage implements OnInit {
   readonly appointments = signal<Appointment[]>([]);
   readonly measurements = signal<BodyMeasurement[]>([]);
 
+  private readonly scheduledStatuses = ['SCHEDULED', 'CONFIRMED', 'RESCHEDULED'];
+
   readonly activePatients = computed(
     () => this.patients().filter((patient) => patient.status === 'ACTIVE').length,
   );
   readonly pendingAppointments = computed(
     () =>
       this.appointments().filter((appointment) =>
-        ['SCHEDULED', 'CONFIRMED', 'RESCHEDULED'].includes(appointment.status),
+        this.scheduledStatuses.includes(appointment.status),
       ).length,
   );
-  readonly completedAppointments = computed(
-    () => this.appointments().filter((appointment) => appointment.status === 'COMPLETED').length,
+  readonly sortedMeasurements = computed(() =>
+    [...this.measurements()].sort(
+      (current, next) =>
+        new Date(next.measuredAt).getTime() - new Date(current.measuredAt).getTime(),
+    ),
   );
-  readonly latestMeasurement = computed<BodyMeasurement | null>(() => this.measurements()[0] ?? null);
+  readonly latestMeasurement = computed<BodyMeasurement | null>(
+    () => this.sortedMeasurements()[0] ?? null,
+  );
+  readonly previousMeasurement = computed<BodyMeasurement | null>(
+    () => this.sortedMeasurements()[1] ?? null,
+  );
+  readonly upcomingAppointments = computed(() =>
+    [...this.appointments()]
+      .filter((appointment) => this.scheduledStatuses.includes(appointment.status))
+      .sort(
+        (current, next) =>
+          new Date(current.scheduledAt).getTime() - new Date(next.scheduledAt).getTime(),
+      ),
+  );
+  readonly evolutionBars = computed(() => {
+    const measurements = this.sortedMeasurements().slice(0, 8).reverse();
+    const weights = measurements.map((measurement) => measurement.weightKg ?? 0);
+    const minWeight = weights.length ? Math.min(...weights) : 0;
+    const maxWeight = weights.length ? Math.max(...weights) : 0;
+    const range = Math.max(maxWeight - minWeight, 1);
+
+    return measurements.map((measurement, index) => ({
+      id: measurement.id,
+      label: this.formatDate(measurement.measuredAt),
+      value: `${this.formatNumber(measurement.weightKg)} kg`,
+      height: measurements.length === 1 ? 68 : 36 + ((measurement.weightKg - minWeight) / range) * 56,
+      featured: index === measurements.length - 1,
+    }));
+  });
+  readonly patientRows = computed(() =>
+    this.patients()
+      .filter((patient) => patient.status === 'ACTIVE')
+      .slice(0, 5)
+      .map((patient) => ({
+        id: patient.id,
+        name: patient.fullName,
+        goal: patient.nutritionGoal || 'Sin objetivo registrado',
+        risk: 'N/D',
+        adherence: 'N/D',
+        lastAppointment: this.lastAppointmentLabel(patient.id),
+      })),
+  );
+  readonly hasMeasurements = computed(() => this.measurements().length > 0);
+  readonly waistVariation = computed(() => {
+    const latest = this.latestMeasurement();
+    const previous = this.previousMeasurement();
+    if (!latest?.waistCm || !previous?.waistCm) return 'N/D';
+    const variation = latest.waistCm - previous.waistCm;
+    return `${variation > 0 ? '+' : ''}${this.formatNumber(variation)} cm`;
+  });
 
   constructor(
     private readonly patientsService: PatientsService,
@@ -74,6 +142,21 @@ export class DashboardPage implements OnInit {
   formatDate(value?: string | null) {
     if (!value) return 'Sin fecha';
     return new Intl.DateTimeFormat('es-BO', { day: '2-digit', month: 'short' }).format(new Date(value));
+  }
+
+  formatNumber(value?: number | null) {
+    if (value === null || value === undefined) return 'N/D';
+    return new Intl.NumberFormat('es-BO', { maximumFractionDigits: 1 }).format(value);
+  }
+
+  lastAppointmentLabel(patientId: string) {
+    const appointment = [...this.appointments()]
+      .filter((item) => item.patientId === patientId)
+      .sort(
+        (current, next) =>
+          new Date(next.scheduledAt).getTime() - new Date(current.scheduledAt).getTime(),
+      )[0];
+    return appointment ? this.formatDate(appointment.scheduledAt) : 'Sin citas';
   }
 
   statusLabel = appointmentStatusLabel;
