@@ -1,35 +1,42 @@
 <header class="page-header">
   <div>
-    <h1>Medidas corporales</h1>
-    <p>Evolución corporal y registro de mediciones.</p>
+    <h1>{{ selectedPatient()?.fullName || 'Medidas corporales' }}</h1>
+    <p>Evolucion corporal y registro de mediciones dentro del expediente.</p>
   </div>
-  <button class="btn" type="button" (click)="measurementModal.set(true)">
-    <svg lucidePlus size="18"></svg>
-    Nueva medición
-  </button>
+  <div class="patients-header-actions">
+    <a class="btn secondary outline" [routerLink]="['/patients', selectedPatient()?.id]">
+      <svg lucideArrowLeft size="18"></svg>
+      Volver
+    </a>
+    <button class="btn secondary" type="button" (click)="compositionModal.set(true)" [disabled]="!latestMeasurement()">
+      Registrar composicion
+    </button>
+    <button class="btn" type="button" (click)="measurementModal.set(true)">
+      <svg lucidePlus size="18"></svg>
+      Nueva medicion
+    </button>
+  </div>
 </header>
-
-<form class="toolbar">
-  <select [value]="selectedPatientId()" (change)="changePatient($any($event.target).value)">
-    @for (patient of patients(); track patient.id) {
-      <option [value]="patient.id">{{ patient.fullName }}</option>
-    }
-  </select>
-  <button class="btn secondary" type="button" (click)="compositionModal.set(true)" [disabled]="!latestMeasurement()">
-    Registrar composición
-  </button>
-</form>
 
 @if (loading()) {
   <div class="loading-state">Cargando mediciones...</div>
 } @else if (error()) {
   <div class="error-state">{{ error() }}</div>
 } @else {
+  <section class="patient-tabs">
+    <a [routerLink]="['/patients', selectedPatient()?.id]">Resumen</a>
+    <a routerLink="/appointments">Citas</a>
+    <strong>Medidas</strong>
+    <span>Seguimiento</span>
+    <a [routerLink]="['/patients', selectedPatient()?.id, 'diets']">Dietas</a>
+    <span>Documentos</span>
+  </section>
+
   <section class="grid measurements-grid">
     <article class="panel main-measurements">
       <div class="panel-header">
         <div>
-          <h2>Evolución corporal</h2>
+          <h2>Evolucion corporal</h2>
           <p class="muted">{{ selectedPatient()?.fullName || 'Paciente' }}</p>
         </div>
       </div>
@@ -65,26 +72,26 @@
 
     <aside class="grid">
       <article class="panel dark-summary">
-        <h2>Última medición</h2>
+        <h2>Ultima medicion</h2>
         <strong>{{ selectedPatient()?.fullName }}</strong>
         <p>{{ formatDate(latestMeasurement()?.measuredAt) }}</p>
-        <p>Peso {{ latestMeasurement()?.weightKg || 'N/D' }} kg · Cintura {{ latestMeasurement()?.waistCm || 'N/D' }} cm</p>
+        <p>Peso {{ latestMeasurement()?.weightKg || 'N/D' }} kg - Cintura {{ latestMeasurement()?.waistCm || 'N/D' }} cm</p>
       </article>
       <article class="panel composition-card">
-        <div class="panel-header"><h2>Composición corporal</h2><svg lucideDroplet size="18"></svg></div>
+        <div class="panel-header"><h2>Composicion corporal</h2><svg lucideDroplet size="18"></svg></div>
         <dl>
           <div><dt>Grasa corporal</dt><dd>{{ latestComposition()?.bodyFatPercentage || 'N/D' }}%</dd></div>
           <div><dt>Masa muscular</dt><dd>{{ latestComposition()?.muscleMassKg || 'N/D' }} kg</dd></div>
           <div><dt>Agua corporal</dt><dd>{{ latestComposition()?.waterPercentage || 'N/D' }}%</dd></div>
           <div><dt>Grasa visceral</dt><dd>{{ latestComposition()?.visceralFatLevel || 'N/D' }}</dd></div>
-          <div><dt>Edad metabólica</dt><dd>{{ latestComposition()?.metabolicAge || 'N/D' }}</dd></div>
+          <div><dt>Edad metabolica</dt><dd>{{ latestComposition()?.metabolicAge || 'N/D' }}</dd></div>
         </dl>
       </article>
     </aside>
   </section>
 }
 
-<app-modal [open]="measurementModal()" title="Nueva medición" eyebrow="Evolución corporal" (close)="measurementModal.set(false)">
+<app-modal [open]="measurementModal()" title="Nueva medicion" eyebrow="Evolucion corporal" (close)="measurementModal.set(false)">
   <form [formGroup]="measurementForm" (ngSubmit)="createMeasurement()">
     <div class="form-grid">
       <label class="field"><span>Fecha</span><input type="date" formControlName="measuredAt" /></label>
@@ -97,15 +104,15 @@
   </form>
 </app-modal>
 
-<app-modal [open]="compositionModal()" title="Registrar composición" eyebrow="Composición corporal" (close)="compositionModal.set(false)">
+<app-modal [open]="compositionModal()" title="Registrar composicion" eyebrow="Composicion corporal" (close)="compositionModal.set(false)">
   <form [formGroup]="compositionForm" (ngSubmit)="createComposition()">
     <div class="form-grid">
       <label class="field"><span>Grasa corporal %</span><input type="number" formControlName="bodyFatPercentage" /></label>
       <label class="field"><span>Masa muscular kg</span><input type="number" formControlName="muscleMassKg" /></label>
       <label class="field"><span>Agua corporal %</span><input type="number" formControlName="waterPercentage" /></label>
       <label class="field"><span>Grasa visceral</span><input type="number" formControlName="visceralFatLevel" /></label>
-      <label class="field"><span>Masa ósea kg</span><input type="number" formControlName="boneMassKg" /></label>
-      <label class="field"><span>Edad metabólica</span><input type="number" formControlName="metabolicAge" /></label>
+      <label class="field"><span>Masa osea kg</span><input type="number" formControlName="boneMassKg" /></label>
+      <label class="field"><span>Edad metabolica</span><input type="number" formControlName="metabolicAge" /></label>
     </div>
     <div class="actions"><button class="btn secondary" type="button" (click)="compositionModal.set(false)">Cancelar</button><button class="btn" type="submit">Guardar</button></div>
   </form>

@@ -1,0 +1,217 @@
+@if (loading()) {
+  <div class="loading-state">Cargando planes alimenticios...</div>
+} @else if (error()) {
+  <div class="error-state">{{ error() }}</div>
+} @else if (!patientId()) {
+  <header class="diets-header">
+    <div>
+      <h1>Dietas</h1>
+      <p>Selecciona un paciente para gestionar sus planes alimenticios.</p>
+    </div>
+  </header>
+
+  <section class="patient-picker-grid">
+    @for (item of patients(); track item.id) {
+      <a class="patient-picker-card" [routerLink]="['/patients', item.id, 'diets']">
+        <strong>{{ item.fullName }}</strong>
+        <span>{{ item.nutritionGoal || 'Plan nutricional' }}</span>
+      </a>
+    }
+  </section>
+} @else {
+  <header class="diets-header">
+    <div>
+      <h1>{{ patient()?.fullName }}</h1>
+      <p>Planes alimenticios asignados, borradores y vigencias dentro del expediente nutricional del paciente.</p>
+    </div>
+    <div class="diets-actions">
+      <button class="btn secondary" type="button" disabled title="Disponible en una proxima fase documental.">
+        <svg lucideDownload size="17"></svg>
+        Exportar dieta
+      </button>
+      <button class="btn" type="button" (click)="openCreateModal()" [disabled]="saving()">
+        <svg lucidePlus size="17"></svg>
+        Agregar plan
+      </button>
+    </div>
+  </header>
+
+  <p class="prepared-note">Exportacion documental disponible en una proxima fase.</p>
+
+  @if (successMessage()) {
+    <div class="feedback-banner success">{{ successMessage() }}</div>
+  }
+  @if (actionError() && !modalOpen()) {
+    <div class="feedback-banner error">{{ actionError() }}</div>
+  }
+
+  <nav class="patient-tabs">
+    <a [routerLink]="['/patients', patient()?.id]">Resumen</a>
+    <a routerLink="/appointments">Citas</a>
+    <a [routerLink]="['/patients', patient()?.id, 'measurements']">Medidas</a>
+    <span>Seguimiento</span>
+    <strong>Dietas</strong>
+    <span>Documentos</span>
+  </nav>
+
+  <form class="diet-filterbar" [formGroup]="filters">
+    <label class="diet-search">
+      <svg lucideSearch size="17"></svg>
+      <input formControlName="search" placeholder="Buscar dieta, fase o comida del plan" />
+    </label>
+    <button
+      class="diet-chip active"
+      type="button"
+      [class.selected]="activeDietTab() === 'ACTIVE'"
+      (click)="activeDietTab.set('ACTIVE')"
+    >
+      <svg lucideShieldCheck size="16"></svg>
+      Activas
+    </button>
+    <button
+      class="diet-chip"
+      type="button"
+      [class.selected]="activeDietTab() === 'DRAFT'"
+      (click)="activeDietTab.set('DRAFT')"
+    >
+      <svg lucideUtensils size="16"></svg>
+      Borrador
+    </button>
+    <button
+      class="diet-chip danger"
+      type="button"
+      [class.selected]="activeDietTab() === 'EXPIRING'"
+      (click)="activeDietTab.set('EXPIRING')"
+    >
+      <svg lucideXCircle size="16"></svg>
+      Vence pronto
+    </button>
+    <button class="diet-chip neutral" type="button" (click)="activeDietTab.set('ALL')">Todos</button>
+  </form>
+
+  <section class="diets-layout">
+    <div class="diets-main">
+      <article class="featured-diet">
+        <div>
+          <small>Plan destacado</small>
+          <h2>Plan antiinflamatorio de 16 semanas para {{ patient()?.firstName }}</h2>
+          <p>Historial de planes asignados, versiones vigentes y ajustes nutricionales del expediente actual.</p>
+        </div>
+        <div>
+          <span><small>Duracion</small><strong>16 semanas</strong></span>
+          <span><small>Adherencia</small><strong>{{ selectedDiet()?.adherencePercent || 82 }}%</strong></span>
+        </div>
+      </article>
+
+      <article class="diet-table-card">
+        <header>
+          <div>
+            <h2>Planes de {{ patient()?.firstName }}</h2>
+            <p>Mostrando {{ filteredDiets().length }} planes de {{ patient()?.fullName }}</p>
+          </div>
+          <div>
+            <button class="btn secondary outline" type="button" disabled title="Disponible en una proxima fase documental."><svg lucideFilter size="16"></svg> Filtros</button>
+            <button class="btn" type="button" (click)="openCreateModal()" [disabled]="saving()">
+              <svg lucideUtensils size="16"></svg>
+              Agregar plan
+            </button>
+          </div>
+        </header>
+
+        <table class="diet-table">
+          <thead>
+            <tr>
+              <th>Plan</th>
+              <th>Objetivo</th>
+              <th>Fase</th>
+              <th>Estado</th>
+              <th>Vigencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (diet of filteredDiets(); track diet.id) {
+              <tr [class.selected]="selectedDiet()?.id === diet.id" (click)="selectDiet(diet)">
+                <td>
+                  <a [routerLink]="['/patients', patient()?.id, 'diets', diet.id, 'edit']">{{ diet.name }}</a>
+                </td>
+                <td>{{ diet.objective }}</td>
+                <td>{{ diet.phase || 'Sin fase' }}</td>
+                <td><span class="badge" [class.warning]="statusClass(diet.status) === 'warning'" [class.danger]="statusClass(diet.status) === 'danger'">{{ statusLabel(diet.status) }}</span></td>
+                <td>{{ formatDate(diet.endDate) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </article>
+    </div>
+
+    <aside class="diet-side">
+      <article class="selected-plan-card">
+        <small>Plan seleccionado</small>
+        <h2>{{ selectedDiet()?.patientFullName || patient()?.fullName }} / {{ selectedDiet()?.phase || 'semana 4' }}</h2>
+        <p>{{ selectedDiet()?.notes || 'Ajuste enfocado en adherencia y control nutricional dentro del plan actual de la paciente.' }}</p>
+      </article>
+
+      <article class="weekly-structure-card">
+        <h2>Estructura semanal</h2>
+        <div><strong>Desayuno</strong><span>Proteina + fruta</span></div>
+        <div><strong>Almuerzo</strong><span>Plato balanceado</span></div>
+        <div><strong>Cena</strong><span>Ligera y temprana</span></div>
+        <div><strong>Snacks</strong><span>2 colaciones</span></div>
+        <div><strong>Restriccion</strong><span>{{ selectedDiet()?.mainRestriction || 'Sin bebidas azucaradas' }}</span></div>
+      </article>
+
+      <article class="quick-follow-card">
+        <h2>Seguimiento rapido</h2>
+        <div><span>Cumplimiento semanal</span><strong>{{ selectedDiet()?.adherencePercent || 82 }}%</strong></div>
+        <div class="progress"><span [style.width.%]="selectedDiet()?.adherencePercent || 82"></span></div>
+        <p><strong>Buen avance</strong><span>Entrega documental pendiente</span></p>
+        <small>Proximo ajuste sugerido: incrementar fibra en cena y reforzar hidratacion.</small>
+      </article>
+    </aside>
+  </section>
+
+  <app-modal
+    [open]="modalOpen()"
+    title="Crear plan para {{ patient()?.fullName }}"
+    eyebrow="Dietas del paciente"
+    (close)="closeCreateModal()"
+  >
+    <form class="diet-modal-form" [formGroup]="createForm" (ngSubmit)="createDiet()">
+      <p>Define objetivo, vigencia y estructura inicial del plan alimenticio antes de asignarlo al expediente.</p>
+
+      @if (actionError()) {
+        <div class="feedback-banner error">{{ actionError() }}</div>
+      }
+
+      <section class="diet-modal-summary">
+        <div><small>Paciente</small><strong>{{ patient()?.fullName }}</strong></div>
+        <div><small>Nutricionista</small><strong>{{ session.user()?.firstName }} {{ session.user()?.lastName }}</strong></div>
+        <div><small>Contexto</small><strong>Seguimiento semanal</strong></div>
+      </section>
+
+      <div class="diet-form-grid">
+        <label class="field"><span>Nombre del plan</span><input formControlName="name" /></label>
+        <label class="field"><span>Objetivo principal</span><input formControlName="objective" /></label>
+        <label class="field"><span>Fecha de inicio</span><input type="date" formControlName="startDate" /></label>
+        <label class="field"><span>Fecha de fin</span><input type="date" formControlName="endDate" /></label>
+        <label class="field"><span>Fase del plan</span><input formControlName="phase" /></label>
+        <label class="field"><span>Tipo de abordaje</span><input formControlName="approach" /></label>
+        <label class="field"><span>Comidas por dia</span><input type="number" min="1" formControlName="mealsPerDay" /></label>
+        <label class="field"><span>Restriccion principal</span><input formControlName="mainRestriction" /></label>
+        <label class="field wide"><span>Indicaciones y observaciones</span><textarea rows="4" formControlName="notes"></textarea></label>
+      </div>
+
+      <div class="diet-modal-actions">
+        <p>Al guardar, el plan quedara asociado al expediente y podra editarse desde el editor.</p>
+        <div>
+          <button class="btn secondary" type="button" (click)="closeCreateModal()" [disabled]="saving()">Cancelar</button>
+          <button class="btn" type="submit" [disabled]="saving()">
+            <svg lucideUtensils size="16"></svg>
+            {{ saving() ? 'Guardando...' : 'Guardar plan' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </app-modal>
+}

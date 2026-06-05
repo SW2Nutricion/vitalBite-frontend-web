@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { LucideClipboardList, LucideDroplet, LucidePlus, LucideRuler, LucideWeight } from '@lucide/angular';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { LucideArrowLeft, LucideClipboardList, LucideDroplet, LucidePlus, LucideRuler, LucideWeight } from '@lucide/angular';
 import {
   BodyComposition,
   BodyMeasurement,
@@ -13,8 +14,10 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
 @Component({
   selector: 'app-body-measurements-page',
   imports: [
+    RouterLink,
     ReactiveFormsModule,
     ModalComponent,
+    LucideArrowLeft,
     LucideClipboardList,
     LucideDroplet,
     LucidePlus,
@@ -25,7 +28,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
 })
 export class BodyMeasurementsPage implements OnInit {
   private readonly fb = inject(FormBuilder);
-  readonly patients = signal<Patient[]>([]);
+  readonly patient = signal<Patient | null>(null);
   readonly selectedPatientId = signal('');
   readonly measurements = signal<BodyMeasurement[]>([]);
   readonly compositions = signal<BodyComposition[]>([]);
@@ -34,9 +37,7 @@ export class BodyMeasurementsPage implements OnInit {
   readonly measurementModal = signal(false);
   readonly compositionModal = signal(false);
 
-  readonly selectedPatient = computed<Patient | undefined>(() =>
-    this.patients().find((patient) => patient.id === this.selectedPatientId()),
-  );
+  readonly selectedPatient = computed<Patient | null>(() => this.patient());
   readonly latestMeasurement = computed<BodyMeasurement | null>(() => this.measurements()[0] ?? null);
   readonly latestComposition = computed<BodyComposition | null>(() => this.compositions()[0] ?? null);
 
@@ -58,25 +59,29 @@ export class BodyMeasurementsPage implements OnInit {
   });
 
   constructor(
+    private readonly route: ActivatedRoute,
     private readonly patientsService: PatientsService,
     private readonly measurementsService: BodyMeasurementsService,
   ) {}
 
   async ngOnInit() {
-    await this.loadPatients();
+    await this.loadPatient();
   }
 
-  async loadPatients() {
+  async loadPatient() {
     this.loading.set(true);
     this.error.set('');
     try {
-      const patients = await this.patientsService.list();
-      this.patients.set(patients);
-      for (const patient of patients) {
-        this.selectedPatientId.set(patient.id);
-        await this.loadMeasurements();
-        if (this.measurements().length > 0) return;
+      const patientId = this.route.snapshot.paramMap.get('id');
+      if (!patientId) {
+        this.error.set('Selecciona un paciente para revisar sus medidas.');
+        return;
       }
+
+      const patient = await this.patientsService.byId(patientId);
+      this.patient.set(patient);
+      this.selectedPatientId.set(patient.id);
+      await this.loadMeasurements();
     } catch {
       this.error.set('No se pudo cargar la evolución corporal.');
     } finally {
@@ -93,11 +98,6 @@ export class BodyMeasurementsPage implements OnInit {
     ]);
     this.measurements.set(measurements);
     this.compositions.set(compositions);
-  }
-
-  async changePatient(patientId: string) {
-    this.selectedPatientId.set(patientId);
-    await this.loadMeasurements();
   }
 
   async createMeasurement() {

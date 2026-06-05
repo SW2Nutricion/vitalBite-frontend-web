@@ -39,6 +39,41 @@ button {
   cursor: pointer;
 }
 
+button:disabled,
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.feedback-banner {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #f8f7f2;
+  color: var(--green-950);
+  font-weight: 800;
+}
+
+.feedback-banner.success {
+  border-color: #c7dcc1;
+  background: #edf7e9;
+  color: var(--green-700);
+}
+
+.feedback-banner.error {
+  border-color: #ecc9c0;
+  background: #fff0ec;
+  color: var(--danger);
+}
+
+.prepared-note {
+  margin: -6px 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .page-header {
   display: flex;
   align-items: flex-start;
@@ -653,6 +688,51 @@ button {
   gap: 10px;
 }
 
+.diet-modal-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.diet-modal-summary div {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 10px;
+  background: #eef4ee;
+}
+
+.diet-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.diet-form-grid .wide {
+  grid-column: 1 / -1;
+}
+
+.diet-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.diet-modal-actions p {
+  max-width: 360px;
+  margin: 0;
+  color: #536a86;
+  font-size: 12px;
+}
+
+.diet-modal-actions div {
+  display: flex;
+  gap: 10px;
+}
+
 .patient-tabs {
   display: flex;
   gap: 8px;
@@ -675,6 +755,27 @@ button {
 }
 
 .patient-tabs button.active {
+  border-color: var(--green-700);
+  background: var(--green-700);
+  color: white;
+}
+
+.patient-tabs a,
+.patient-tabs span,
+.patient-tabs strong {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 18px;
+  background: #f8f7f2;
+  color: var(--green-950);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.patient-tabs strong {
   border-color: var(--green-700);
   background: var(--green-700);
   color: white;

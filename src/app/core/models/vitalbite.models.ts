@@ -8,6 +8,7 @@ export type AppointmentStatus =
   | 'RESCHEDULED'
   | 'NO_SHOW';
 export type AppointmentMode = 'IN_PERSON' | 'VIRTUAL';
+export type DietPlanStatus = 'ACTIVE' | 'DRAFT' | 'NEEDS_ADJUSTMENT';
 
 export interface Tenant {
   id: string;
@@ -95,6 +96,119 @@ export interface BodyComposition {
   metabolicAge?: number | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface DietMealItem {
+  id: string;
+  dietMealId: string;
+  name: string;
+  portion?: string | null;
+  calories?: number | null;
+  itemOrder: number;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DietMeal {
+  id: string;
+  dietPlanDayId: string;
+  name: string;
+  mealOrder: number;
+  targetCalories?: number | null;
+  notes?: string | null;
+  items: DietMealItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DietPlanDay {
+  id: string;
+  dietPlanId: string;
+  dayLabel: string;
+  dayOrder: number;
+  meals: DietMeal[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DietPlan {
+  id: string;
+  tenantId: string;
+  patientId: string;
+  nutritionistId: string;
+  name: string;
+  objective: string;
+  phase?: string | null;
+  approach?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  status: DietPlanStatus;
+  mealsPerDay?: number | null;
+  mainRestriction?: string | null;
+  notes?: string | null;
+  estimatedCalories?: number | null;
+  adherencePercent?: number | null;
+  patientFullName: string;
+  nutritionistFullName: string;
+  days: DietPlanDay[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DietMealItemInput {
+  name: string;
+  portion?: string | null;
+  calories?: number | null;
+  itemOrder?: number | null;
+  notes?: string | null;
+}
+
+export interface DietMealInput {
+  name: string;
+  mealOrder?: number | null;
+  targetCalories?: number | null;
+  notes?: string | null;
+  items?: DietMealItemInput[] | null;
+}
+
+export interface DietPlanDayInput {
+  dayLabel: string;
+  dayOrder?: number | null;
+  meals?: DietMealInput[] | null;
+}
+
+export interface CreateDietPlanInput {
+  patientId: string;
+  nutritionistId?: string | null;
+  name: string;
+  objective: string;
+  phase?: string | null;
+  approach?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  status?: DietPlanStatus | null;
+  mealsPerDay?: number | null;
+  mainRestriction?: string | null;
+  notes?: string | null;
+  estimatedCalories?: number | null;
+  adherencePercent?: number | null;
+  days?: DietPlanDayInput[] | null;
+}
+
+export interface UpdateDietPlanInput {
+  name?: string | null;
+  objective?: string | null;
+  phase?: string | null;
+  approach?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  status?: DietPlanStatus | null;
+  mealsPerDay?: number | null;
+  mainRestriction?: string | null;
+  notes?: string | null;
+  estimatedCalories?: number | null;
+  adherencePercent?: number | null;
 }
 
 export interface PlanLimit {

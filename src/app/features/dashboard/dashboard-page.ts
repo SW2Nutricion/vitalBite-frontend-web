@@ -98,6 +98,10 @@ export class DashboardPage implements OnInit {
       })),
   );
   readonly hasMeasurements = computed(() => this.measurements().length > 0);
+  readonly measurementsEntryRoute = computed(() => {
+    const patientId = this.latestMeasurement()?.patientId ?? this.patients()[0]?.id;
+    return patientId ? ['/patients', patientId, 'measurements'] : ['/patients'];
+  });
   readonly waistVariation = computed(() => {
     const latest = this.latestMeasurement();
     const previous = this.previousMeasurement();

@@ -9,9 +9,7 @@ import {
   LucideHeartPulse,
   LucideLayoutDashboard,
   LucideLogOut,
-  LucideRuler,
   LucideSettings,
-  LucideUtensils,
   LucideUsers,
 } from '@lucide/angular';
 import { SessionService } from '../../core/services/session.service';
@@ -31,9 +29,7 @@ import { homeRouteFor } from '../../core/guards/role-routing';
     LucideHeartPulse,
     LucideLayoutDashboard,
     LucideLogOut,
-    LucideRuler,
     LucideSettings,
-    LucideUtensils,
     LucideUsers,
   ],
   templateUrl: './main-layout.html',
@@ -47,8 +43,6 @@ export class MainLayout implements OnInit {
     { label: 'Pacientes', route: '/patients', icon: 'patients' },
     { label: 'Usuarios', route: '/users', icon: 'users', adminOnly: true },
     { label: 'Citas', route: '/appointments', icon: 'appointments' },
-    { label: 'Dietas', route: null, icon: 'diets' },
-    { label: 'Medidas', route: '/body-measurements', icon: 'measurements' },
     { label: 'Pagos', route: '/payments-subscriptions', icon: 'payments', adminOnly: true },
     { label: 'Reportes', route: null, icon: 'reports' },
     { label: 'Configuracion', route: null, icon: 'settings' },

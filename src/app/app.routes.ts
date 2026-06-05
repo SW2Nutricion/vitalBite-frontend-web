@@ -40,9 +40,9 @@ export const routes: Routes = [
         canActivate: [permissionGuard(['patients:read'])],
       },
       {
-        path: 'patients/:id',
-        component: PatientDetailPage,
-        canActivate: [permissionGuard(['patients:read'])],
+        path: 'patients/:id/measurements',
+        component: BodyMeasurementsPage,
+        canActivate: [permissionGuard(['body-measurements:read'])],
       },
       {
         path: 'appointments',
@@ -50,9 +50,21 @@ export const routes: Routes = [
         canActivate: [permissionGuard(['appointments:read'])],
       },
       {
-        path: 'body-measurements',
-        component: BodyMeasurementsPage,
-        canActivate: [permissionGuard(['body-measurements:read'])],
+        path: 'patients/:id/diets',
+        loadComponent: () =>
+          import('./features/diets/diets-page/diets-page').then((m) => m.DietsPage),
+        canActivate: [permissionGuard(['diets:read'])],
+      },
+      {
+        path: 'patients/:id/diets/:dietId/edit',
+        loadComponent: () =>
+          import('./features/diets/diet-editor/diet-editor-page').then((m) => m.DietEditorPage),
+        canActivate: [permissionGuard(['diets:read'])],
+      },
+      {
+        path: 'patients/:id',
+        component: PatientDetailPage,
+        canActivate: [permissionGuard(['patients:read'])],
       },
       {
         path: 'payments-subscriptions',

@@ -1,0 +1,318 @@
+.diets-header,
+.diets-actions,
+.diet-table-card header,
+.diet-table-card header > div:last-child {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.diets-header {
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.diets-header h1 {
+  margin: 0 0 5px;
+  color: var(--green-950);
+  font-size: 30px;
+  line-height: 1.1;
+}
+
+.diets-header p {
+  margin: 0;
+  color: #536a86;
+}
+
+.diets-actions {
+  align-items: center;
+}
+
+.diet-filterbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto auto;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+}
+
+.diet-search,
+.diet-chip {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.diet-search {
+  min-width: 0;
+  padding: 0 14px;
+  color: #58708f;
+}
+
+.diet-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+}
+
+.diet-chip {
+  padding: 0 16px;
+  background: #eef4e9;
+  color: var(--green-700);
+  font-weight: 800;
+}
+
+.diet-chip.active.selected,
+.diet-chip.selected {
+  background: var(--green-700);
+  color: white;
+}
+
+.diet-chip.danger {
+  background: #fff0e6;
+  color: #c45b32;
+}
+
+.diets-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 18px;
+  align-items: start;
+}
+
+.diets-main,
+.diet-side {
+  display: grid;
+  gap: 14px;
+}
+
+.featured-diet,
+.diet-table-card,
+.weekly-structure-card,
+.quick-follow-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+}
+
+.featured-diet {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 18px;
+  background: #eef4ee;
+}
+
+.featured-diet small,
+.selected-plan-card small,
+.diet-modal-summary small {
+  color: #789b7c;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.featured-diet h2 {
+  max-width: 560px;
+  margin: 6px 0;
+  color: var(--green-950);
+  font-size: 25px;
+  line-height: 1.2;
+}
+
+.featured-diet p {
+  margin: 0;
+  color: #536a86;
+}
+
+.featured-diet > div:last-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.featured-diet span {
+  min-width: 112px;
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 12px;
+  background: white;
+}
+
+.diet-table-card {
+  overflow: hidden;
+}
+
+.diet-table-card header {
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+}
+
+.diet-table-card h2,
+.weekly-structure-card h2,
+.quick-follow-card h2 {
+  margin: 0 0 4px;
+  color: var(--green-950);
+  font-size: 16px;
+}
+
+.diet-table-card p {
+  margin: 0;
+  color: #789b7c;
+  font-size: 12px;
+}
+
+.diet-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.diet-table th,
+.diet-table td {
+  padding: 14px 16px;
+  border-top: 1px solid #e8ece4;
+  text-align: left;
+  font-size: 13px;
+}
+
+.diet-table th {
+  color: #6f8199;
+  background: #f5f7f8;
+}
+
+.diet-table tr.selected {
+  background: #f7fbf4;
+}
+
+.diet-table a {
+  color: #182331;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.selected-plan-card {
+  min-height: 142px;
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--green-950);
+  color: white;
+}
+
+.selected-plan-card h2 {
+  margin: 14px 0 10px;
+  color: white;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.selected-plan-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.35;
+}
+
+.weekly-structure-card,
+.quick-follow-card {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+}
+
+.weekly-structure-card div,
+.quick-follow-card div:first-of-type,
+.quick-follow-card p {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.weekly-structure-card span,
+.quick-follow-card span,
+.quick-follow-card small {
+  color: #536a86;
+}
+
+.progress {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5ebe2;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--green-700);
+}
+
+.quick-follow-card p {
+  margin: 0;
+}
+
+.quick-follow-card p strong {
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: #dff6df;
+  color: #12a44c;
+  font-size: 12px;
+}
+
+.patient-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.patient-picker-card {
+  display: grid;
+  gap: 7px;
+  min-height: 110px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  color: var(--green-950);
+  text-decoration: none;
+}
+
+.patient-picker-card span {
+  color: var(--muted);
+}
+
+@media (max-width: 1050px) {
+  .diets-layout,
+  .diet-filterbar {
+    grid-template-columns: 1fr;
+  }
+
+  .featured-diet,
+  .diets-header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 680px) {
+  .diet-form-grid,
+  .diet-modal-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .diet-table {
+    min-width: 720px;
+  }
+
+  .diet-table-card {
+    overflow-x: auto;
+  }
+}

@@ -1,0 +1,151 @@
+@if (loading()) {
+  <div class="loading-state">Cargando editor...</div>
+} @else if (error()) {
+  <div class="error-state">{{ error() }}</div>
+} @else {
+  <header class="diet-editor-header">
+    <div>
+      <h1>Editor de dieta · {{ patient()?.fullName }}</h1>
+      <p>Edita comidas, alimentos personalizados, porciones y calorias del plan actual sin salir del expediente.</p>
+    </div>
+    <div class="diet-editor-actions">
+      <button class="btn secondary" type="button" [disabled]="saving()" (click)="duplicateDay()">
+        <svg lucideCopy size="17"></svg>
+        {{ saveMode() === 'duplicate' ? 'Duplicando...' : 'Duplicar dia' }}
+      </button>
+      <button class="btn" type="button" [disabled]="saving()" (click)="updatePlan()">
+        <svg lucideSave size="17"></svg>
+        {{ saveMode() === 'update' ? 'Actualizando...' : 'Guardar cambios' }}
+      </button>
+    </div>
+  </header>
+
+  <nav class="patient-tabs">
+    <a [routerLink]="['/patients', patient()?.id]">Resumen</a>
+    <a routerLink="/appointments">Citas</a>
+    <a [routerLink]="['/patients', patient()?.id, 'measurements']">Medidas</a>
+    <span>Seguimiento</span>
+    <strong>Dietas</strong>
+    <span>Documentos</span>
+  </nav>
+
+  @if (successMessage()) {
+    <div class="feedback-banner success">{{ successMessage() }}</div>
+  }
+  @if (actionError()) {
+    <div class="feedback-banner error">{{ actionError() }}</div>
+  }
+
+  <section class="editor-filterbar">
+    <label>
+      <span>Buscar alimento o comida dentro del plan</span>
+    </label>
+    @for (day of days(); track day.id) {
+      <button
+        class="day-chip"
+        type="button"
+        [class.active]="selectedDay()?.id === day.id"
+        (click)="activeDayId.set(day.id)"
+      >
+        {{ day.dayLabel }}
+      </button>
+    }
+    <span class="version-chip">Version actual</span>
+  </section>
+
+  <section class="diet-editor-layout">
+    <main class="editor-main-card">
+      <article class="current-plan-card">
+        <div>
+          <small>Plan actual</small>
+          <h2>{{ diet()?.name }} · {{ diet()?.phase || selectedDay()?.dayLabel }}</h2>
+          <p>Objetivo: {{ diet()?.objective }} con adherencia sostenible y control nutricional.</p>
+        </div>
+        <div>
+          <span><strong>{{ dailyCalories() || diet()?.estimatedCalories || 0 }} kcal</strong><small>Meta diaria</small></span>
+          <span><strong>{{ activeMealsCount() }} comidas</strong><small>Distribucion</small></span>
+        </div>
+      </article>
+
+      <section class="meal-grid">
+        @for (meal of selectedDay()?.meals || []; track meal.id) {
+          <article class="meal-card">
+            <header>
+              <div>
+                <h3>{{ meal.name }}</h3>
+                <input
+                  type="number"
+                  min="0"
+                  [value]="mealCalories(meal) || meal.targetCalories || 0"
+                  (input)="updateMealCalories(meal.id, $event)"
+                  aria-label="Calorias de comida"
+                />
+              </div>
+              <button class="mini-add" type="button" (click)="addItem(meal)">
+                <svg lucidePlus size="14"></svg>
+                Agregar
+              </button>
+            </header>
+
+            <div class="meal-items">
+              @for (item of meal.items; track item.id) {
+                <div class="meal-item">
+                  <label>
+                    <input [value]="item.name" (input)="updateItem(meal.id, item.id, 'name', $event)" />
+                    <small>
+                      <input [value]="item.portion || ''" (input)="updateItem(meal.id, item.id, 'portion', $event)" />
+                    </small>
+                  </label>
+                  <input
+                    class="calorie-input"
+                    type="number"
+                    min="0"
+                    [value]="item.calories || 0"
+                    (input)="updateItem(meal.id, item.id, 'calories', $event)"
+                  />
+                  <button class="icon-btn ghost danger-icon" type="button" (click)="removeItem(meal.id, item.id)" aria-label="Quitar alimento">
+                    <svg lucideTrash2 size="15"></svg>
+                  </button>
+                </div>
+              } @empty {
+                <div class="empty-meal">Agrega alimentos manuales para completar esta comida.</div>
+              }
+            </div>
+          </article>
+        }
+      </section>
+    </main>
+
+    <aside class="editor-side">
+      <article>
+        <h2>Resumen del plan</h2>
+        <p>Estado, distribucion y acciones principales del dia.</p>
+        <div><span>Comidas activas</span><strong>{{ activeMealsCount() }} bloques</strong></div>
+        <div><span>Items del dia</span><strong>{{ activeItemsCount() }} alimentos</strong></div>
+        <div><span>Ultima edicion</span><strong>Hace 5 min</strong></div>
+      </article>
+
+      <article>
+        <h2>Resumen diario</h2>
+        <div><span>Total diario</span><strong>{{ dailyCalories() }} kcal</strong></div>
+        <div><span>Proteina estimada</span><strong>104 g</strong></div>
+        <div><span>Restriccion activa</span><strong>{{ diet()?.mainRestriction || 'Sin bebidas azucaradas' }}</strong></div>
+      </article>
+
+      <article class="plan-actions">
+        <h2>Acciones del plan</h2>
+        <button type="button" (click)="saveDraft()" [disabled]="saving()">
+          <svg lucideFileText size="16"></svg>
+          {{ saveMode() === 'draft' ? 'Guardando...' : 'Guardar borrador' }}
+        </button>
+        <button type="button" class="primary" (click)="updatePlan()" [disabled]="saving()">
+          <svg lucideCheck size="16"></svg>
+          {{ saveMode() === 'update' ? 'Actualizando...' : 'Actualizar plan' }}
+        </button>
+        <button type="button" disabled title="Disponible en una proxima fase documental."><svg lucideDownload size="16"></svg> Exportar PDF</button>
+        <button type="button" disabled title="Disponible en una proxima fase documental."><svg lucideBookOpen size="16"></svg> Abrir biblioteca</button>
+        <p class="prepared-note">Disponible en una proxima fase documental.</p>
+      </article>
+    </aside>
+  </section>
+}

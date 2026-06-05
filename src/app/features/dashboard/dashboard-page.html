@@ -88,7 +88,7 @@
             <svg lucideRuler size="28"></svg>
             <strong>Sin mediciones todavía</strong>
             <p>Registra peso, talla e IMC para visualizar la evolución corporal.</p>
-            <a class="btn secondary" routerLink="/body-measurements">Registrar medidas</a>
+            <a class="btn secondary" [routerLink]="measurementsEntryRoute()">Registrar medidas</a>
           </div>
         }
 
@@ -235,7 +235,7 @@
         </div>
         <p>Sin datos suficientes para calcular adherencia, déficit o distribución nutricional.</p>
         <div class="progress-line"><span style="width: 0%"></span></div>
-        <a routerLink="/body-measurements">Completar mediciones</a>
+        <a [routerLink]="measurementsEntryRoute()">Completar mediciones</a>
       </article>
     </aside>
   </section>

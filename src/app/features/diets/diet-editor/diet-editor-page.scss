@@ -1,0 +1,291 @@
+.diet-editor-header,
+.diet-editor-actions,
+.current-plan-card,
+.current-plan-card > div:last-child,
+.meal-card header,
+.editor-side article div,
+.plan-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.diet-editor-header {
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.diet-editor-header h1 {
+  margin: 0 0 5px;
+  color: var(--green-950);
+  font-size: 30px;
+  line-height: 1.1;
+}
+
+.diet-editor-header p,
+.current-plan-card p,
+.editor-side article p {
+  margin: 0;
+  color: #536a86;
+}
+
+.diet-editor-actions {
+  align-items: center;
+}
+
+.editor-filterbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(3, auto);
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+}
+
+.editor-filterbar label {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: #536a86;
+}
+
+.day-chip,
+.version-chip {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 12px;
+  padding: 0 18px;
+  background: #eef4e9;
+  color: var(--green-700);
+  font-weight: 900;
+}
+
+.day-chip.active {
+  background: var(--green-700);
+  color: white;
+}
+
+.version-chip {
+  background: #fff0e6;
+  color: #c45b32;
+}
+
+.diet-editor-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 18px;
+  align-items: start;
+}
+
+.editor-main-card,
+.editor-side article {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+}
+
+.editor-main-card {
+  padding: 18px;
+}
+
+.current-plan-card {
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-radius: 16px;
+  background: #eef4ee;
+}
+
+.current-plan-card small {
+  color: #789b7c;
+  font-weight: 900;
+}
+
+.current-plan-card h2 {
+  margin: 5px 0;
+  color: var(--green-950);
+  font-size: 22px;
+}
+
+.current-plan-card span {
+  min-width: 96px;
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 12px;
+  background: white;
+}
+
+.meal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.meal-card {
+  min-height: 206px;
+  border: 1px solid #dfe7df;
+  border-radius: 16px;
+  padding: 14px;
+  background: #fbfdfa;
+}
+
+.meal-card header {
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.meal-card h3 {
+  margin: 0 0 4px;
+  color: var(--green-950);
+  font-size: 18px;
+}
+
+.meal-card header input {
+  width: 92px;
+  border: 0;
+  background: transparent;
+  color: #789b7c;
+  font-weight: 900;
+}
+
+.mini-add {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 12px;
+  background: #dff9fa;
+  color: #00a9b7;
+  font-weight: 900;
+}
+
+.meal-items {
+  display: grid;
+  gap: 8px;
+}
+
+.meal-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 88px 32px;
+  gap: 8px;
+  align-items: center;
+  min-height: 48px;
+  padding: 8px;
+  border-radius: 10px;
+  background: #f4f4ef;
+}
+
+.meal-item label {
+  display: grid;
+  gap: 2px;
+}
+
+.meal-item input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #182331;
+  font-weight: 900;
+}
+
+.meal-item small input {
+  color: #536a86;
+  font-weight: 700;
+}
+
+.calorie-input {
+  min-height: 32px;
+  border: 1px solid var(--line) !important;
+  border-radius: 8px;
+  background: white !important;
+  text-align: center;
+}
+
+.danger-icon {
+  color: #d45b34;
+}
+
+.empty-meal {
+  padding: 16px;
+  border-radius: 10px;
+  background: #f4f4ef;
+  color: #536a86;
+  font-size: 13px;
+}
+
+.editor-side {
+  display: grid;
+  gap: 14px;
+}
+
+.editor-side article {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+}
+
+.editor-side h2 {
+  margin: 0;
+  color: var(--green-950);
+  font-size: 18px;
+}
+
+.editor-side article div {
+  justify-content: space-between;
+}
+
+.editor-side span {
+  color: #536a86;
+}
+
+.plan-actions {
+  flex-direction: column;
+}
+
+.plan-actions button {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #eef4e9;
+  color: var(--green-950);
+  font-weight: 900;
+}
+
+.plan-actions button.primary {
+  background: var(--green-700);
+  color: white;
+}
+
+@media (max-width: 1120px) {
+  .diet-editor-layout,
+  .editor-filterbar,
+  .meal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .diet-editor-header,
+  .current-plan-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

@@ -102,9 +102,9 @@
       <article class="related-modules-card">
         <h2>Modulos relacionados</h2>
         <a routerLink="/appointments"><span>Citas</span><svg lucideCalendarDays size="16"></svg></a>
-        <a routerLink="/body-measurements"><span>Medidas</span><svg lucideRuler size="16"></svg></a>
+        <a [routerLink]="['/patients', patient()?.id, 'measurements']"><span>Medidas</span><svg lucideRuler size="16"></svg></a>
         <span><span>Seguimiento</span><svg lucideActivity size="16"></svg></span>
-        <span><span>Dietas</span><svg lucideUtensils size="16"></svg></span>
+        <a [routerLink]="['/patients', patient()?.id, 'diets']"><span>Dietas</span><svg lucideUtensils size="16"></svg></a>
         <span><span>Documentos</span><svg lucideFolder size="16"></svg></span>
       </article>
 

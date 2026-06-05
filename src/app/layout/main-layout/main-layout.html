@@ -22,12 +22,6 @@
               @case ('appointments') {
                 <svg lucideCalendarDays size="18"></svg>
               }
-              @case ('diets') {
-                <svg lucideUtensils size="18"></svg>
-              }
-              @case ('measurements') {
-                <svg lucideRuler size="18"></svg>
-              }
               @case ('payments') {
                 <svg lucideCreditCard size="18"></svg>
               }
@@ -49,9 +43,6 @@
         } @else {
           <span class="side-nav-disabled">
             @switch (item.icon) {
-              @case ('diets') {
-                <svg lucideUtensils size="18"></svg>
-              }
               @case ('reports') {
                 <svg lucideFolder size="18"></svg>
               }

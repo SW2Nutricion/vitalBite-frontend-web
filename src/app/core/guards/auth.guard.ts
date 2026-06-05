@@ -8,6 +8,7 @@ type PermissionCode =
   | 'patients:read'
   | 'appointments:read'
   | 'body-measurements:read'
+  | 'diets:read'
   | 'payments:read'
   | 'users:read'
   | 'users:write'
@@ -20,6 +21,7 @@ const rolePermissions: Record<RoleCode, PermissionCode[]> = {
     'patients:read',
     'appointments:read',
     'body-measurements:read',
+    'diets:read',
     'payments:read',
     'users:read',
     'users:write',
@@ -30,12 +32,19 @@ const rolePermissions: Record<RoleCode, PermissionCode[]> = {
     'patients:read',
     'appointments:read',
     'body-measurements:read',
+    'diets:read',
     'payments:read',
     'users:read',
     'users:write',
     'audit-log:read',
   ],
-  NUTRICIONISTA: ['dashboard:read', 'patients:read', 'appointments:read', 'body-measurements:read'],
+  NUTRICIONISTA: [
+    'dashboard:read',
+    'patients:read',
+    'appointments:read',
+    'body-measurements:read',
+    'diets:read',
+  ],
   SUPER_ADMIN: ['super-admin:read', 'audit-log:read'],
 };
 
