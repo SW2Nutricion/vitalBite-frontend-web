@@ -26,6 +26,7 @@
   <section class="patient-tabs">
     <a [routerLink]="['/patients', selectedPatient()?.id]">Resumen</a>
     <a routerLink="/appointments">Citas</a>
+    <a [routerLink]="['/patients', selectedPatient()?.id]" [queryParams]="{ tab: 'Antropometría' }">Antropometría</a>
     <strong>Medidas</strong>
     <span>Seguimiento</span>
     <a [routerLink]="['/patients', selectedPatient()?.id, 'diets']">Dietas</a>

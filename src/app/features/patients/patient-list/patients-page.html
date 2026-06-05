@@ -4,10 +4,6 @@
     <p>Gestiona tus pacientes y entra a su expediente nutricional.</p>
   </div>
   <div class="patients-header-actions">
-    <button class="btn secondary outline" type="button">
-      <svg lucideFilter size="17"></svg>
-      Filtros
-    </button>
     <button class="btn" type="button" (click)="openCreate()">
       <svg lucideUserRoundPlus size="18"></svg>
       Nuevo paciente
@@ -34,7 +30,7 @@
   </article>
 </section>
 
-<form class="patients-filterbar" [formGroup]="filters" (ngSubmit)="load()">
+<form class="patients-filterbar" [formGroup]="filters">
   <label class="patient-search-field">
     <svg lucideSearch size="18"></svg>
     <input formControlName="search" placeholder="Buscar por nombre, email o telefono" />
@@ -44,7 +40,7 @@
     <select formControlName="status">
       <option value="">Todos</option>
       <option value="ACTIVE">Activos</option>
-      <option value="INACTIVE">Alertas</option>
+      <option value="INACTIVE">Desactivados</option>
       <option value="ARCHIVED">Pendientes</option>
     </select>
     <svg lucideChevronDown size="15"></svg>
@@ -59,7 +55,6 @@
     </select>
     <svg lucideCalendarDays size="15"></svg>
   </label>
-  <button class="btn" type="submit">Aplicar</button>
 </form>
 
 <section class="patients-table-card">
@@ -68,16 +63,7 @@
       <h2>Tabla de pacientes</h2>
       <p>Listado central con filtros y acciones por fila</p>
     </div>
-    <div class="patients-table-actions">
-      <button class="btn secondary outline" type="button">
-        <svg lucideFilter size="17"></svg>
-        Filtros
-      </button>
-      <button class="btn" type="button" (click)="openCreate()">
-        <svg lucideUserRoundPlus size="17"></svg>
-        Paciente
-      </button>
-    </div>
+    
   </div>
 
   @if (loading()) {
@@ -98,7 +84,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (patient of visiblePatients(); track patient.id; let index = $index) {
+        @for (patient of visiblePatients(); track patient.id) {
           <tr>
             <td><strong>{{ patient.fullName }}</strong></td>
             <td>
@@ -109,11 +95,7 @@
             <td><strong>{{ patient.nutritionGoal || 'Sin objetivo' }}</strong></td>
             <td>{{ latestAppointmentLabel(patient.id) }}</td>
             <td>
-              @if (isDetailAction(index)) {
-                <a class="table-action" [routerLink]="['/patients', patient.id]">{{ rowAction(index) }}</a>
-              } @else {
-                <span class="table-action muted-action">{{ rowAction(index) }}</span>
-              }
+              <a class="table-action" [routerLink]="['/patients', patient.id]">Ver detalle</a>
             </td>
           </tr>
         }
@@ -167,12 +149,19 @@
         </div>
       </label>
       <label class="field">
+        <span>Fecha de nacimiento</span>
+        <div class="input-with-icon">
+          <svg lucideCalendarDays size="17"></svg>
+          <input formControlName="birthDate" type="date" />
+        </div>
+      </label>
+      <label class="field">
         <span>Estado del paciente</span>
         <div class="input-with-icon">
           <svg lucideChevronDown size="17"></svg>
           <select formControlName="status">
             <option value="ACTIVE">Activo</option>
-            <option value="INACTIVE">Alerta</option>
+            <option value="INACTIVE">Desactivado</option>
           </select>
         </div>
       </label>

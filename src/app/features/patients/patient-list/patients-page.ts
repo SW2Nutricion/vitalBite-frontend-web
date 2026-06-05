@@ -1,4 +1,5 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
@@ -6,7 +7,6 @@ import {
   LucideCalendarDays,
   LucideChevronDown,
   LucideClipboardCheck,
-  LucideFilter,
   LucideMail,
   LucidePhone,
   LucideSearch,
@@ -16,6 +16,7 @@ import {
   LucideUserRoundPlus,
   LucideUsers,
 } from '@lucide/angular';
+import { debounceTime, distinctUntilChanged, map, merge, startWith } from 'rxjs';
 import {
   Appointment,
   CreatePatientInput,
@@ -28,6 +29,11 @@ import { SessionService } from '../../../core/services/session.service';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 
 type RegisterFilter = '' | 'TODAY' | 'WEEK' | 'MONTH';
+type PatientFiltersValue = {
+  search: string;
+  status: '' | PatientStatus;
+  register: RegisterFilter;
+};
 
 @Component({
   selector: 'app-patients-page',
@@ -39,7 +45,6 @@ type RegisterFilter = '' | 'TODAY' | 'WEEK' | 'MONTH';
     LucideCalendarDays,
     LucideChevronDown,
     LucideClipboardCheck,
-    LucideFilter,
     LucideMail,
     LucidePhone,
     LucideSearch,
@@ -53,6 +58,8 @@ type RegisterFilter = '' | 'TODAY' | 'WEEK' | 'MONTH';
 })
 export class PatientsPage implements OnInit {
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
+  private patientRequestId = 0;
   readonly patients = signal<Patient[]>([]);
   readonly statusTotals = signal<Record<PatientStatus, number>>({
     ACTIVE: 0,
@@ -70,11 +77,25 @@ export class PatientsPage implements OnInit {
     status: ['' as '' | PatientStatus],
     register: ['' as RegisterFilter],
   });
+  readonly filterValues = toSignal(
+    this.filters.valueChanges.pipe(
+      startWith(this.filters.getRawValue()),
+      map((value): PatientFiltersValue => ({
+        search: value.search ?? '',
+        status: (value.status ?? '') as '' | PatientStatus,
+        register: (value.register ?? '') as RegisterFilter,
+      })),
+    ),
+    {
+      initialValue: this.filters.getRawValue() as PatientFiltersValue,
+    },
+  );
 
   readonly form = this.fb.nonNullable.group({
     fullName: ['', [Validators.required, Validators.minLength(3)]],
     email: [''],
     phone: [''],
+    birthDate: [''],
     nutritionGoal: [''],
     clinicalNotes: [''],
     status: ['ACTIVE' as PatientStatus],
@@ -100,37 +121,12 @@ export class PatientsPage implements OnInit {
   ) {}
 
   async ngOnInit() {
-    await this.load();
+    await Promise.all([this.loadSummary(), this.loadPatients(this.currentServerFilters())]);
+    this.observeServerFilters();
   }
 
   async load() {
-    this.loading.set(true);
-    this.error.set('');
-    try {
-      const { search, status } = this.filters.getRawValue();
-      const [patients, active, inactive, archived, appointments] = await Promise.all([
-        this.patientsService.list({
-          search,
-          status: status || null,
-        }),
-        this.patientsService.list({ status: 'ACTIVE' }),
-        this.patientsService.list({ status: 'INACTIVE' }),
-        this.patientsService.list({ status: 'ARCHIVED' }),
-        this.appointmentsService.calendar().catch(() => []),
-      ]);
-
-      this.patients.set(patients);
-      this.statusTotals.set({
-        ACTIVE: active.length,
-        INACTIVE: inactive.length,
-        ARCHIVED: archived.length,
-      });
-      this.appointments.set(appointments);
-    } catch {
-      this.error.set('No se pudo cargar el listado de pacientes.');
-    } finally {
-      this.loading.set(false);
-    }
+    await Promise.all([this.loadSummary(), this.loadPatients(this.currentServerFilters())]);
   }
 
   openCreate() {
@@ -139,6 +135,7 @@ export class PatientsPage implements OnInit {
       fullName: '',
       email: '',
       phone: '',
+      birthDate: '',
       nutritionGoal: '',
       clinicalNotes: '',
       status: 'ACTIVE',
@@ -152,6 +149,7 @@ export class PatientsPage implements OnInit {
       fullName: patient.fullName,
       email: patient.email ?? '',
       phone: patient.phone ?? '',
+      birthDate: this.birthDateInputValue(patient.birthDate),
       nutritionGoal: patient.nutritionGoal ?? '',
       clinicalNotes: patient.clinicalNotes ?? '',
       status: patient.status,
@@ -172,6 +170,7 @@ export class PatientsPage implements OnInit {
       lastName,
       email: raw.email,
       phone: raw.phone,
+      birthDate: this.birthDatePayload(raw.birthDate),
       nutritionGoal: raw.nutritionGoal,
       clinicalNotes: raw.clinicalNotes,
       status: raw.status,
@@ -194,7 +193,7 @@ export class PatientsPage implements OnInit {
   }
 
   statusLabel(status: PatientStatus) {
-    return status === 'ACTIVE' ? 'Activo' : status === 'INACTIVE' ? 'Alerta' : 'Pendiente';
+    return status === 'ACTIVE' ? 'Activo' : status === 'INACTIVE' ? 'Desactivado' : 'Pendiente';
   }
 
   statusBadgeClass(status: PatientStatus) {
@@ -204,14 +203,6 @@ export class PatientsPage implements OnInit {
   latestAppointmentLabel(patientId: string) {
     const appointment = this.latestAppointment(patientId);
     return appointment ? this.relativeDate(appointment.scheduledAt) : 'Sin cita';
-  }
-
-  rowAction(index: number) {
-    return ['Ver detalle', 'Citas', 'Medidas', 'Dietas', 'Seguimiento'][index % 5];
-  }
-
-  isDetailAction(index: number) {
-    return this.rowAction(index) === 'Ver detalle';
   }
 
   private latestAppointment(patientId: string) {
@@ -248,7 +239,7 @@ export class PatientsPage implements OnInit {
   }
 
   private matchesRegisterFilter(patient: Patient) {
-    const register = this.filters.controls.register.value;
+    const { register } = this.filterValues();
     if (!register) return true;
 
     const createdAt = new Date(patient.createdAt);
@@ -262,6 +253,79 @@ export class PatientsPage implements OnInit {
     );
   }
 
+  private observeServerFilters() {
+    const searchChanges$ = this.filters.controls.search.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+    );
+    const statusChanges$ = this.filters.controls.status.valueChanges.pipe(distinctUntilChanged());
+
+    merge(searchChanges$, statusChanges$)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        void this.loadPatients(this.currentServerFilters());
+      });
+  }
+
+  private currentServerFilters() {
+    const { search, status } = this.filterValues();
+
+    return {
+      search,
+      status,
+    };
+  }
+
+  private async loadSummary() {
+    this.error.set('');
+    try {
+      const [active, inactive, archived, appointments] = await Promise.all([
+        this.patientsService.list({ status: 'ACTIVE' }),
+        this.patientsService.list({ status: 'INACTIVE' }),
+        this.patientsService.list({ status: 'ARCHIVED' }),
+        this.appointmentsService.calendar().catch(() => []),
+      ]);
+
+      this.statusTotals.set({
+        ACTIVE: active.length,
+        INACTIVE: inactive.length,
+        ARCHIVED: archived.length,
+      });
+      this.appointments.set(appointments);
+    } catch {
+      this.error.set('No se pudo cargar el listado de pacientes.');
+    }
+  }
+
+  private async loadPatients(filters: Pick<PatientFiltersValue, 'search' | 'status'>) {
+    const requestId = ++this.patientRequestId;
+    this.loading.set(true);
+    this.error.set('');
+
+    try {
+      const patients = await this.patientsService.list({
+        search: filters.search,
+        status: filters.status || null,
+      });
+
+      if (requestId !== this.patientRequestId) {
+        return;
+      }
+
+      this.patients.set(patients);
+    } catch {
+      if (requestId !== this.patientRequestId) {
+        return;
+      }
+
+      this.error.set('No se pudo cargar el listado de pacientes.');
+    } finally {
+      if (requestId === this.patientRequestId) {
+        this.loading.set(false);
+      }
+    }
+  }
+
   private splitFullName(fullName: string) {
     const parts = fullName.trim().split(/\s+/);
     const firstName = parts.shift() ?? '';
@@ -271,5 +335,13 @@ export class PatientsPage implements OnInit {
       firstName,
       lastName,
     };
+  }
+
+  private birthDateInputValue(value?: string | null) {
+    return value ? value.slice(0, 10) : '';
+  }
+
+  private birthDatePayload(value: string) {
+    return value ? `${value}T00:00:00.000Z` : null;
   }
 }

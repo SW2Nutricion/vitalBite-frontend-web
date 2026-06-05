@@ -195,6 +195,492 @@ button:disabled,
   border-radius: 8px;
 }
 
+.appointments-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.appointments-shell {
+  display: grid;
+  gap: 14px;
+}
+
+.appointments-shell.embedded {
+  margin-top: 6px;
+}
+
+.appointments-shell.embedded .appointments-filterbar {
+  margin-bottom: 12px;
+}
+
+.appointments-shell.embedded .appointments-layout {
+  margin-top: 0;
+}
+
+.appointments-filterbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.appointments-search-field {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fbfaf6;
+  color: #86a180;
+}
+
+.appointments-search-field input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+}
+
+.appointments-filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.appointments-view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.appointments-view-pill,
+.appointments-status-field {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: white;
+  color: var(--green-950);
+}
+
+.appointments-view-pill {
+  min-height: 46px;
+  padding: 0 18px;
+  font-weight: 800;
+}
+
+.appointments-view-pill.active {
+  border-color: var(--green-700);
+  background: var(--green-700);
+  color: white;
+}
+
+.appointments-status-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-right: 34px;
+}
+
+.appointments-status-field select {
+  border: 0;
+  outline: 0;
+  min-height: 46px;
+  padding: 0 16px;
+  background: transparent;
+  color: var(--green-950);
+  appearance: none;
+}
+
+.appointments-status-field svg {
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+  color: #7f9b7b;
+}
+
+.appointments-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) 360px;
+  gap: 14px;
+  align-items: start;
+}
+
+.appointments-calendar-card,
+.appointments-summary-card,
+.appointments-actions-card,
+.appointments-availability-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.appointments-calendar-card {
+  overflow: hidden;
+  padding: 16px;
+}
+
+.appointments-calendar-header,
+.appointments-side-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.appointments-calendar-header {
+  margin-bottom: 12px;
+}
+
+.appointments-calendar-header h2,
+.appointments-side-card-header h2 {
+  margin: 0 0 4px;
+  color: var(--green-950);
+  font-size: 18px;
+}
+
+.appointments-calendar-header p,
+.appointments-side-card-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.appointments-range-badge,
+.appointments-side-card-header span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #eef5e8;
+  color: var(--green-700);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.appointments-calendar-state {
+  min-height: 520px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background: #fbfaf6;
+}
+
+.appointments-day-grid {
+  display: grid;
+  gap: 8px;
+  min-height: 520px;
+}
+
+.appointments-day-grid.week {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.appointments-day-grid.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.appointments-day-column {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fbfaf6;
+  min-height: 520px;
+}
+
+.appointments-day-column.today {
+  border-color: #c7dcc1;
+  background: #f8fbf5;
+}
+
+.appointments-day-column-header h3 {
+  margin: 0 0 3px;
+  color: var(--green-950);
+  font-size: 18px;
+}
+
+.appointments-day-column-header small {
+  color: var(--muted);
+}
+
+.appointments-day-stack {
+  display: grid;
+  gap: 8px;
+}
+
+.appointment-entry-card {
+  width: 100%;
+  display: grid;
+  gap: 5px;
+  text-align: left;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: #f3f5ef;
+  color: var(--green-950);
+}
+
+.appointment-entry-card strong {
+  font-size: 16px;
+}
+
+.appointment-entry-card span,
+.appointment-entry-card small {
+  color: #55705a;
+}
+
+.appointment-entry-card.success {
+  background: #edf7e9;
+  border-color: #d0e3c9;
+}
+
+.appointment-entry-card.warning {
+  background: #fff3d6;
+  border-color: #f2d99b;
+}
+
+.appointment-entry-card.danger {
+  background: #fde7df;
+  border-color: #efc1b2;
+}
+
+.appointment-entry-card.muted {
+  background: #f0efec;
+  border-color: #ddd9d1;
+}
+
+.appointment-entry-card.selected,
+.appointments-month-entry.selected {
+  outline: 2px solid var(--green-700);
+  outline-offset: 1px;
+}
+
+.appointments-empty-slot {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: white;
+  color: var(--muted);
+}
+
+.appointments-empty-slot strong {
+  color: var(--green-950);
+}
+
+.appointments-empty-slot.compact {
+  min-height: 74px;
+  place-content: center;
+  text-align: center;
+}
+
+.appointments-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.appointments-month-head {
+  padding: 0 8px 4px;
+  color: #6f8a6b;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.appointments-month-cell {
+  min-height: 140px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fbfaf6;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  text-align: left;
+}
+
+.appointments-month-cell.outside {
+  opacity: 0.56;
+}
+
+.appointments-month-cell.today {
+  border-color: #c7dcc1;
+}
+
+.appointments-month-cell-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.appointments-month-cell-top strong {
+  color: var(--green-950);
+}
+
+.appointments-month-cell-top span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: #eef5e8;
+  color: var(--green-700);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.appointments-month-list {
+  display: grid;
+  gap: 6px;
+}
+
+.appointments-month-entry {
+  display: block;
+  padding: 7px 8px;
+  border-radius: 10px;
+  background: #f1f5ec;
+  color: var(--green-950);
+  font-size: 12px;
+}
+
+.appointments-month-entry.success {
+  background: #edf7e9;
+}
+
+.appointments-month-entry.warning {
+  background: #fff3d6;
+}
+
+.appointments-month-entry.danger {
+  background: #fde7df;
+}
+
+.appointments-month-list small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.appointments-side {
+  display: grid;
+  gap: 14px;
+}
+
+.appointments-summary-card,
+.appointments-actions-card,
+.appointments-availability-card {
+  padding: 16px;
+}
+
+.appointments-side-card-header.dark h2,
+.appointments-side-card-header.dark p,
+.appointments-actions-card .appointments-selected-meta strong,
+.appointments-actions-card .appointments-selected-meta small,
+.appointments-actions-card .appointments-selected-reason {
+  color: white;
+}
+
+.appointments-actions-card {
+  background: var(--green-950);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.appointments-actions-card .appointments-side-card-header.dark span {
+  background: rgba(255, 255, 255, 0.1);
+  color: #d7e5d1;
+}
+
+.appointments-selected-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 0 8px;
+}
+
+.appointments-selected-reason {
+  margin: 0 0 14px;
+  color: #d7e5d1;
+  line-height: 1.5;
+}
+
+.appointments-action-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 14px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  text-align: left;
+}
+
+.appointments-action-row small {
+  color: #d7e5d1;
+}
+
+.appointments-action-row:disabled {
+  opacity: 0.48;
+}
+
+.appointments-availability-list {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0 16px;
+}
+
+.appointments-availability-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fbfaf6;
+}
+
+.appointments-availability-row strong {
+  color: var(--green-950);
+}
+
+.appointments-availability-row span {
+  color: var(--green-700);
+  font-weight: 800;
+}
+
+.appointments-availability-cta {
+  width: 100%;
+}
+
+.appointments-modal-grid {
+  margin-top: 6px;
+}
+
 .search-input,
 .field input,
 .field select,
@@ -783,9 +1269,629 @@ button:disabled,
 
 .patient-detail-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   align-items: start;
+}
+
+.patient-detail-main {
+  width: 100%;
+}
+
+.anthropometry-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) 360px;
+  gap: 16px;
+  align-items: start;
+}
+
+.anthropometry-header,
+.anthropometry-card-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.anthropometry-card-actions {
+  justify-content: flex-end;
+}
+
+.anthropometry-main-card,
+.anthropometry-patient-card,
+.anthropometry-region-list-card,
+.anthropometry-history-card {
+  padding-bottom: 14px;
+}
+
+.anthropometry-map-card {
+  padding: 0 18px 18px;
+}
+
+.anthropometry-map-caption span,
+.anthropometry-map-caption small,
+.anthropometry-patient-head span,
+.anthropometry-summary-tile small,
+.anthropometry-visceral-card small,
+.anthropometry-visceral-card span,
+.anthropometry-history-item span,
+.anthropometry-region-row small {
+  display: block;
+  color: var(--muted);
+}
+
+.anthropometry-map-caption strong,
+.anthropometry-patient-head strong,
+.anthropometry-summary-tile strong,
+.anthropometry-visceral-card strong,
+.anthropometry-region-row strong,
+.anthropometry-history-item strong {
+  color: var(--green-950);
+}
+
+.anthropometry-map-canvas {
+  display: grid;
+  gap: 18px;
+}
+
+.anthropometry-map-caption {
+  width: fit-content;
+  min-width: 240px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: linear-gradient(135deg, #fdfcf7 0%, #f4f7ef 100%);
+  box-shadow: var(--shadow);
+}
+
+.anthropometry-history-item,
+.anthropometry-region-row,
+.anthropometry-callout {
+  color: inherit;
+}
+
+.anthropometry-callouts-layer {
+  position: relative;
+  width: min(100%, 920px);
+  min-height: 860px;
+}
+
+.anthropometry-callout {
+  position: absolute;
+  z-index: 2;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 14px;
+  color: #23394b;
+}
+
+.anthropometry-callout span {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.anthropometry-callout span::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #2b73ff;
+  border: 2px solid white;
+  box-shadow: 0 8px 20px rgba(43, 115, 255, 0.28);
+  transform: translateY(-50%);
+}
+
+.anthropometry-callout span::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  height: 1px;
+  background: #b5c4df;
+  transform: translateY(-50%);
+}
+
+.anthropometry-callout.left {
+  left: 8px;
+}
+
+.anthropometry-callout.left span {
+  padding-right: 170px;
+}
+
+.anthropometry-callout.left span::before {
+  right: 163px;
+}
+
+.anthropometry-callout.left span::after {
+  right: 8px;
+  width: 150px;
+}
+
+.anthropometry-callout.right {
+  right: 8px;
+}
+
+.anthropometry-callout.right span {
+  padding-left: 170px;
+}
+
+.anthropometry-callout.right span::before {
+  left: 163px;
+}
+
+.anthropometry-callout.right span::after {
+  left: 8px;
+  width: 150px;
+}
+
+.anthropometry-callout.active {
+  color: #246cff;
+  font-weight: 800;
+}
+
+.anthropometry-callout.active span::after {
+  background: #2b73ff;
+}
+
+.anthropometry-callout.callout-neck {
+  top: 118px;
+}
+
+.anthropometry-callout.callout-chest {
+  top: 196px;
+}
+
+.anthropometry-callout.callout-left-arm {
+  top: 238px;
+}
+
+.anthropometry-callout.callout-waist {
+  top: 286px;
+}
+
+.anthropometry-callout.callout-abdomen {
+  top: 334px;
+}
+
+.anthropometry-callout.callout-hip {
+  top: 390px;
+}
+
+.anthropometry-callout.callout-left-forearm {
+  top: 550px;
+}
+
+.anthropometry-callout.callout-left-thigh {
+  top: 486px;
+}
+
+.anthropometry-callout.callout-left-calf {
+  top: 694px;
+}
+
+.anthropometry-callout.callout-right-arm {
+  top: 204px;
+}
+
+.anthropometry-callout.callout-right-forearm {
+  top: 378px;
+}
+
+.anthropometry-callout.callout-right-thigh {
+  top: 490px;
+}
+
+.anthropometry-callout.callout-right-calf {
+  top: 692px;
+}
+
+.anthropometry-body-map {
+  display: grid;
+  place-items: center;
+  min-height: 860px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 50% 36%, rgba(147, 177, 229, 0.16), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 248, 252, 0.92) 100%);
+  border: 1px solid #e4ebf5;
+  overflow: hidden;
+}
+
+.anthropometry-figure-wrap {
+  position: relative;
+  width: 920px;
+  height: 860px;
+}
+
+.anthropometry-figure {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.anthropometry-figure .figure-shadow ellipse {
+  fill: rgba(99, 122, 171, 0.1);
+}
+
+.anthropometry-figure .figure-base circle,
+.anthropometry-figure .figure-base path {
+  fill: none;
+  stroke: #8b9dbd;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.anthropometry-figure .figure-highlight ellipse,
+.anthropometry-figure .figure-highlight rect {
+  fill: rgba(78, 150, 255, 0);
+  stroke: transparent;
+  transition: fill 0.2s ease, stroke 0.2s ease;
+}
+
+.anthropometry-figure .figure-highlight .active {
+  fill: rgba(78, 150, 255, 0.28);
+  stroke: rgba(78, 150, 255, 0.55);
+  stroke-width: 1;
+}
+
+.anthropometry-hotspot,
+.anthropometry-history-item,
+.anthropometry-region-row {
+  position: relative;
+}
+
+.anthropometry-hotspot {
+  position: absolute;
+  z-index: 3;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  padding: 0;
+  border: 2px solid white;
+  background: #2b73ff;
+  box-shadow: 0 8px 20px rgba(43, 115, 255, 0.28);
+}
+
+.anthropometry-hotspot.active {
+  background: #0d57df;
+  transform: scale(1.18);
+}
+
+.anthropometry-hotspot.neck {
+  top: 138px;
+  left: 449px;
+}
+
+.anthropometry-hotspot.chest {
+  top: 215px;
+  left: 460px;
+}
+
+.anthropometry-hotspot.waist {
+  top: 302px;
+  left: 462px;
+}
+
+.anthropometry-hotspot.abdomen {
+  top: 353px;
+  left: 472px;
+}
+
+.anthropometry-hotspot.hip {
+  top: 405px;
+  left: 338px;
+}
+
+.anthropometry-hotspot.left-thigh {
+  top: 522px;
+  left: 402px;
+}
+
+.anthropometry-hotspot.left-forearm {
+  top: 392px;
+  left: 272px;
+}
+
+.anthropometry-hotspot.left-calf {
+  top: 678px;
+  left: 408px;
+}
+
+.anthropometry-hotspot.right-arm {
+  top: 223px;
+  right: 266px;
+}
+
+.anthropometry-hotspot.left-arm {
+  top: 223px;
+  left: 278px;
+}
+
+.anthropometry-hotspot.right-forearm {
+  top: 392px;
+  right: 260px;
+}
+
+.anthropometry-hotspot.right-thigh {
+  top: 522px;
+  right: 400px;
+}
+
+.anthropometry-hotspot.right-calf {
+  top: 678px;
+  right: 406px;
+}
+
+.anthropometry-tooltip {
+  position: absolute;
+  z-index: 4;
+  min-width: 220px;
+  max-width: 240px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #18243a 0%, #121c2e 100%);
+  color: white;
+  box-shadow: 0 26px 56px rgba(16, 31, 58, 0.28);
+}
+
+.anthropometry-tooltip::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: #172238;
+  transform: rotate(45deg);
+}
+
+.anthropometry-tooltip strong,
+.anthropometry-tooltip span,
+.anthropometry-tooltip small {
+  display: block;
+}
+
+.anthropometry-tooltip strong {
+  margin-bottom: 6px;
+  font-size: 16px;
+}
+
+.anthropometry-tooltip span,
+.anthropometry-tooltip small {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.anthropometry-tooltip.tooltip-neck,
+.anthropometry-tooltip.tooltip-chest,
+.anthropometry-tooltip.tooltip-right-arm,
+.anthropometry-tooltip.tooltip-right-forearm {
+  right: 120px;
+}
+
+.anthropometry-tooltip.tooltip-neck {
+  top: 112px;
+}
+
+.anthropometry-tooltip.tooltip-chest {
+  top: 190px;
+}
+
+.anthropometry-tooltip.tooltip-right-arm {
+  top: 250px;
+}
+
+.anthropometry-tooltip.tooltip-right-forearm {
+  top: 380px;
+}
+
+.anthropometry-tooltip.tooltip-waist,
+.anthropometry-tooltip.tooltip-abdomen,
+.anthropometry-tooltip.tooltip-hip,
+.anthropometry-tooltip.tooltip-left-arm,
+.anthropometry-tooltip.tooltip-left-forearm {
+  left: 120px;
+}
+
+.anthropometry-tooltip.tooltip-left-arm {
+  top: 240px;
+}
+
+.anthropometry-tooltip.tooltip-waist {
+  top: 288px;
+}
+
+.anthropometry-tooltip.tooltip-abdomen {
+  top: 342px;
+}
+
+.anthropometry-tooltip.tooltip-hip {
+  top: 402px;
+}
+
+.anthropometry-tooltip.tooltip-left-forearm {
+  top: 450px;
+}
+
+.anthropometry-tooltip.tooltip-left-thigh,
+.anthropometry-tooltip.tooltip-right-thigh {
+  top: 532px;
+}
+
+.anthropometry-tooltip.tooltip-left-calf,
+.anthropometry-tooltip.tooltip-right-calf {
+  top: 692px;
+}
+
+.anthropometry-tooltip.tooltip-left-thigh,
+.anthropometry-tooltip.tooltip-left-calf {
+  left: 140px;
+}
+
+.anthropometry-tooltip.tooltip-right-thigh,
+.anthropometry-tooltip.tooltip-right-calf {
+  right: 140px;
+}
+
+.anthropometry-tooltip.tooltip-neck::before,
+.anthropometry-tooltip.tooltip-chest::before,
+.anthropometry-tooltip.tooltip-right-arm::before,
+.anthropometry-tooltip.tooltip-right-forearm::before,
+.anthropometry-tooltip.tooltip-right-thigh::before,
+.anthropometry-tooltip.tooltip-right-calf::before {
+  left: -8px;
+}
+
+.anthropometry-tooltip.tooltip-left-arm::before,
+.anthropometry-tooltip.tooltip-waist::before,
+.anthropometry-tooltip.tooltip-abdomen::before,
+.anthropometry-tooltip.tooltip-hip::before,
+.anthropometry-tooltip.tooltip-left-forearm::before,
+.anthropometry-tooltip.tooltip-left-thigh::before,
+.anthropometry-tooltip.tooltip-left-calf::before {
+  right: -8px;
+}
+
+.anthropometry-map-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.anthropometry-map-controls {
+  display: flex;
+  gap: 0;
+}
+
+.anthropometry-map-controls .icon-btn {
+  width: 48px;
+  height: 44px;
+  border-radius: 0;
+}
+
+.anthropometry-map-controls .icon-btn:first-child {
+  border-radius: 12px 0 0 12px;
+}
+
+.anthropometry-map-controls .icon-btn:last-child {
+  border-radius: 0 12px 12px 0;
+}
+
+.anthropometry-history-card {
+  margin: 0 18px;
+}
+
+.anthropometry-history-list,
+.anthropometry-region-list {
+  display: grid;
+  gap: 10px;
+  padding: 0 18px;
+}
+
+.anthropometry-history-item,
+.anthropometry-region-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+  text-align: left;
+  box-shadow: var(--shadow);
+}
+
+.anthropometry-history-item.active,
+.anthropometry-region-row.active {
+  border-color: rgba(19, 92, 55, 0.35);
+  background: #edf5ee;
+}
+
+.anthropometry-side-column {
+  display: grid;
+  gap: 16px;
+}
+
+.anthropometry-patient-card,
+.anthropometry-region-list-card {
+  padding-bottom: 18px;
+}
+
+.anthropometry-patient-head {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 0 18px 18px;
+}
+
+.anthropometry-avatar {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #edf3ff 0%, #dae7ff 100%);
+  color: #2b73ff;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.anthropometry-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 18px 18px;
+}
+
+.anthropometry-summary-tile,
+.anthropometry-visceral-card {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fbfaf6;
+}
+
+.anthropometry-visceral-card {
+  margin: 0 18px;
+}
+
+.anthropometry-empty-state {
+  margin: 18px;
+  padding: 32px 20px;
+  display: grid;
+  gap: 10px;
+  place-items: center;
+  text-align: center;
+  border: 1px dashed #cbd6c5;
+  border-radius: 18px;
+  background: #f7f6f1;
+}
+
+.anthropometry-form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.anthropometry-form-error {
+  margin: 14px 0 0;
+}
+
+.anthropometry-delete-copy {
+  margin-bottom: 18px;
+}
+
+.feedback-banner.success {
+  border-color: rgba(19, 92, 55, 0.2);
+  background: #edf5ee;
+  color: var(--green-950);
 }
 
 .patient-summary-card,
@@ -1066,7 +2172,9 @@ button:disabled,
   .dashboard-grid,
   .two-columns,
   .measurements-grid,
-  .patient-detail-layout {
+  .anthropometry-layout,
+  .patient-detail-layout,
+  .appointments-layout {
     grid-template-columns: 1fr;
   }
 
@@ -1075,8 +2183,19 @@ button:disabled,
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .patients-filterbar {
+  .patients-filterbar,
+  .appointments-filterbar {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .appointments-day-grid.week,
+  .appointments-month-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .anthropometry-callouts-layer {
+    width: 100%;
+    min-width: 920px;
   }
 }
 
@@ -1092,10 +2211,15 @@ button:disabled,
   .kpi-grid,
   .form-grid,
   .patients-kpis,
+  .anthropometry-summary-grid,
+  .anthropometry-form-grid,
   .patient-form-grid,
   .patient-modal-summary,
   .summary-mini-grid,
-  .patients-filterbar {
+  .patients-filterbar,
+  .appointments-filterbar,
+  .appointments-day-grid.week,
+  .appointments-month-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1113,15 +2237,39 @@ button:disabled,
     overflow-x: auto;
   }
 
+  .anthropometry-body-map {
+    min-height: 420px;
+    overflow-x: auto;
+    justify-items: start;
+  }
+
+  .anthropometry-map-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .anthropometry-map-controls {
+    justify-content: flex-end;
+  }
+
   .patients-header-actions,
   .patients-table-actions,
-  .patient-modal-actions div {
+  .patient-modal-actions div,
+  .appointments-hero-actions,
+  .appointments-filter-controls,
+  .appointments-view-toggle {
     width: 100%;
   }
 
   .patients-header-actions .btn,
   .patients-table-actions .btn,
   .patient-modal-actions .btn {
+    flex: 1;
+  }
+
+  .appointments-view-pill,
+  .appointments-status-field,
+  .appointments-hero-actions .btn {
     flex: 1;
   }
 }

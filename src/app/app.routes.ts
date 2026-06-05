@@ -6,8 +6,6 @@ import { LoginPage } from './features/auth/login/login-page';
 import { RegisterPage } from './features/auth/register/register-page';
 import { DashboardPage } from './features/dashboard/dashboard-page';
 import { PatientsPage } from './features/patients/patient-list/patients-page';
-import { PatientDetailPage } from './features/patients/patient-detail/patient-detail-page';
-import { AppointmentsPage } from './features/appointments/appointments-page';
 import { BodyMeasurementsPage } from './features/body-measurements/body-measurements-page';
 import { PaymentsSubscriptionsPage } from './features/payments-subscriptions/payments-subscriptions-page';
 import { SuperAdminTenantsPage } from './features/super-admin-tenants/super-admin-tenants-page';
@@ -46,7 +44,8 @@ export const routes: Routes = [
       },
       {
         path: 'appointments',
-        component: AppointmentsPage,
+        loadComponent: () =>
+          import('./features/appointments/appointments-page').then((m) => m.AppointmentsPage),
         canActivate: [permissionGuard(['appointments:read'])],
       },
       {
@@ -63,7 +62,10 @@ export const routes: Routes = [
       },
       {
         path: 'patients/:id',
-        component: PatientDetailPage,
+        loadComponent: () =>
+          import('./features/patients/patient-detail/patient-detail-page').then(
+            (m) => m.PatientDetailPage,
+          ),
         canActivate: [permissionGuard(['patients:read'])],
       },
       {

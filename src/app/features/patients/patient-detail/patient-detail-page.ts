@@ -1,15 +1,11 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
-  LucideActivity,
   LucideArrowLeft,
-  LucideCalendarDays,
-  LucideFolder,
   LucidePencil,
-  LucideRuler,
-  LucideUtensils,
 } from '@lucide/angular';
-import { appointmentStatusLabel, patientStatusLabel } from '../../../core/models/status-labels';
+import { AppointmentsCalendarComponent } from '../../appointments/appointments-calendar/appointments-calendar.component';
+import { AnthropometryPanelComponent } from '../anthropometry/anthropometry-panel.component';
 import { Appointment, BodyMeasurement, Patient } from '../../../core/models/vitalbite.models';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import { BodyMeasurementsService } from '../../../core/services/body-measurements.service';
@@ -19,13 +15,10 @@ import { PatientsService } from '../../../core/services/patients.service';
   selector: 'app-patient-detail-page',
   imports: [
     RouterLink,
-    LucideActivity,
     LucideArrowLeft,
-    LucideCalendarDays,
-    LucideFolder,
     LucidePencil,
-    LucideRuler,
-    LucideUtensils,
+    AppointmentsCalendarComponent,
+    AnthropometryPanelComponent,
   ],
   templateUrl: './patient-detail-page.html',
 })
@@ -35,7 +28,7 @@ export class PatientDetailPage implements OnInit {
   readonly measurements = signal<BodyMeasurement[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
-  readonly tabs = ['Resumen', 'Citas', 'Medidas', 'Seguimiento', 'Dietas', 'Documentos'];
+  readonly tabs = ['Resumen', 'Citas', 'Antropometría', 'Medidas', 'Seguimiento', 'Dietas', 'Documentos'];
   readonly activeTab = signal('Resumen');
   readonly sortedAppointments = computed(() =>
     [...this.appointments()].sort(
@@ -60,6 +53,11 @@ export class PatientDetailPage implements OnInit {
   ) {}
 
   async ngOnInit() {
+    const requestedTab = this.route.snapshot.queryParamMap.get('tab');
+    if (requestedTab && this.tabs.includes(requestedTab)) {
+      this.activeTab.set(requestedTab);
+    }
+
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) return;
 
@@ -118,7 +116,7 @@ export class PatientDetailPage implements OnInit {
 
   birthLabel() {
     const birthDate = this.patient()?.birthDate;
-    return birthDate ? this.compactDate(birthDate).replace('.', '') : 'Sin registro';
+    return birthDate ? this.birthDateText(birthDate) : 'Sin registro';
   }
 
   genderLabel() {
@@ -138,14 +136,27 @@ export class PatientDetailPage implements OnInit {
     return this.latestMeasurement() ? this.compactDate(this.latestMeasurement()!.measuredAt) : 'Pendiente';
   }
 
-  async archive() {
-    const patient = this.patient();
-    if (!patient) return;
-
-    await this.patientsService.archive(patient.id);
-    await this.router.navigateByUrl('/patients');
+  async setActiveTab(tab: string) {
+    this.activeTab.set(tab);
+    await this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        tab: tab === 'Resumen' ? null : tab,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
-  appointmentStatusLabel = appointmentStatusLabel;
-  patientStatusLabel = patientStatusLabel;
+  private birthDateText(value: string) {
+    const [year, month, day] = value.slice(0, 10).split('-').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+
+    return new Intl.DateTimeFormat('es-BO', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'UTC',
+    }).format(date);
+  }
 }

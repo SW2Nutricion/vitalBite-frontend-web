@@ -1,0 +1,347 @@
+@if (loading()) {
+  <div class="loading-state">Cargando antropometría...</div>
+} @else if (error()) {
+  <div class="error-state">{{ error() }}</div>
+} @else {
+  @if (success()) {
+    <div class="feedback-banner success">{{ success() }}</div>
+  }
+
+  <section class="anthropometry-layout">
+    <article class="panel anthropometry-main-card">
+      <div class="panel-header anthropometry-header">
+        <div>
+          <h2>Mapa corporal interactivo</h2>
+          <p class="muted">Selecciona una zona para revisar su última medición registrada.</p>
+        </div>
+        <div class="anthropometry-card-actions">
+          <button class="btn secondary outline" type="button" (click)="openEdit()" [disabled]="!selectedMeasurement()">
+            Editar
+          </button>
+          <button class="btn danger" type="button" (click)="openDelete()" [disabled]="!selectedMeasurement()">
+            Eliminar
+          </button>
+          <button class="btn" type="button" (click)="openCreate()">Registrar nueva medición</button>
+        </div>
+      </div>
+
+      @if (!anthropometry().length) {
+        <section class="anthropometry-empty-state">
+          <strong>Sin registros antropométricos</strong>
+          <p>Esta sección todavía no tiene perímetros registrados para el paciente.</p>
+          <button class="btn" type="button" (click)="openCreate()">Registrar primera medición</button>
+        </section>
+      } @else {
+        <section class="anthropometry-map-card">
+          <div class="anthropometry-map-canvas">
+            <div class="anthropometry-map-caption">
+              <span>{{ selectedRegionInfo().label }}</span>
+              <strong>{{ formatMetric(selectedRegionInfo().value, ' cm') }}</strong>
+              <small>Última medición: {{ formatDate(selectedRegionInfo().measuredAt) }}</small>
+            </div>
+
+            <div class="anthropometry-body-map">
+              <div class="anthropometry-callouts-layer">
+                @for (region of leftRegions; track region.key) {
+                  <button
+                    type="button"
+                    [class]="'anthropometry-callout left callout-' + region.calloutClass"
+                    [class.active]="isSelectedRegion(region.key)"
+                    (click)="selectRegion(region.key)"
+                  >
+                    <span>{{ region.label }}</span>
+                  </button>
+                }
+
+                @for (region of rightRegions; track region.key) {
+                  <button
+                    type="button"
+                    [class]="'anthropometry-callout right callout-' + region.calloutClass"
+                    [class.active]="isSelectedRegion(region.key)"
+                    (click)="selectRegion(region.key)"
+                  >
+                    <span>{{ region.label }}</span>
+                  </button>
+                }
+
+                <div class="anthropometry-figure-wrap">
+                  <svg class="anthropometry-figure" viewBox="0 0 360 860" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="anthroBodyFill" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#fbfdff"></stop>
+                        <stop offset="100%" stop-color="#f1f5fb"></stop>
+                      </linearGradient>
+                    </defs>
+
+                    <g class="figure-shadow">
+                      <ellipse cx="180" cy="830" rx="56" ry="12"></ellipse>
+                    </g>
+
+                    <g class="figure-highlight">
+                      <ellipse cx="180" cy="122" rx="28" ry="18" [class.active]="isSelectedRegion('neckCm')"></ellipse>
+                      <rect x="110" y="176" width="140" height="118" rx="58" [class.active]="isSelectedRegion('chestThoraxCm')"></rect>
+                      <rect x="80" y="186" width="30" height="138" rx="16" transform="rotate(7 95 255)" [class.active]="isSelectedRegion('leftArmCm')"></rect>
+                      <rect x="250" y="186" width="30" height="138" rx="16" transform="rotate(-7 265 255)" [class.active]="isSelectedRegion('rightArmCm')"></rect>
+                      <rect x="70" y="312" width="24" height="132" rx="14" transform="rotate(8 82 378)" [class.active]="isSelectedRegion('leftForearmCm')"></rect>
+                      <rect x="266" y="312" width="24" height="132" rx="14" transform="rotate(-8 278 378)" [class.active]="isSelectedRegion('rightForearmCm')"></rect>
+                      <ellipse cx="180" cy="340" rx="58" ry="24" [class.active]="isSelectedRegion('waistCm')"></ellipse>
+                      <ellipse cx="180" cy="390" rx="60" ry="30" [class.active]="isSelectedRegion('abdomenCm')"></ellipse>
+                      <ellipse cx="180" cy="452" rx="82" ry="44" [class.active]="isSelectedRegion('hipCm')"></ellipse>
+                      <rect x="128" y="486" width="40" height="176" rx="22" [class.active]="isSelectedRegion('leftThighCm')"></rect>
+                      <rect x="192" y="486" width="40" height="176" rx="22" [class.active]="isSelectedRegion('rightThighCm')"></rect>
+                      <rect x="138" y="660" width="28" height="142" rx="16" [class.active]="isSelectedRegion('leftCalfCm')"></rect>
+                      <rect x="194" y="660" width="28" height="142" rx="16" [class.active]="isSelectedRegion('rightCalfCm')"></rect>
+                    </g>
+
+                    <g class="figure-base">
+                      <circle cx="180" cy="78" r="39"></circle>
+                      <path d="M149 114 C142 135, 147 151, 162 162 L198 162 C213 151, 218 135, 211 114"></path>
+                      <path d="M124 176 C108 194, 98 224, 98 257 L98 336 C98 360, 90 392, 79 422 L72 448 C65 464, 68 481, 82 491"></path>
+                      <path d="M236 176 C252 194, 262 224, 262 257 L262 336 C262 360, 270 392, 281 422 L288 448 C295 464, 292 481, 278 491"></path>
+                      <path d="M124 176 C142 166, 160 162, 180 162 C200 162, 218 166, 236 176"></path>
+                      <path d="M125 186 C124 250, 124 328, 126 403"></path>
+                      <path d="M235 186 C236 250, 236 328, 234 403"></path>
+                      <path d="M125 225 C143 210, 161 205, 180 205 C199 205, 217 210, 235 225"></path>
+                      <path d="M126 270 C138 286, 155 294, 180 294 C205 294, 222 286, 234 270"></path>
+                      <path d="M125 404 C137 410, 149 418, 158 436 C164 451, 166 475, 176 487"></path>
+                      <path d="M235 404 C223 410, 211 418, 202 436 C196 451, 194 475, 184 487"></path>
+                      <path d="M176 487 C166 501, 160 533, 160 565 L160 660"></path>
+                      <path d="M184 487 C194 501, 200 533, 200 565 L200 660"></path>
+                      <path d="M160 660 C157 708, 152 744, 145 785 C143 800, 149 812, 160 817"></path>
+                      <path d="M200 660 C203 708, 208 744, 215 785 C217 800, 211 812, 200 817"></path>
+                      <path d="M160 817 C150 827, 146 840, 151 850 C157 859, 170 858, 178 849"></path>
+                      <path d="M200 817 C210 827, 214 840, 209 850 C203 859, 190 858, 182 849"></path>
+                      <path d="M82 491 C78 508, 79 525, 87 540"></path>
+                      <path d="M278 491 C282 508, 281 525, 273 540"></path>
+                      <path d="M87 540 C84 555, 84 570, 90 582"></path>
+                      <path d="M273 540 C276 555, 276 570, 270 582"></path>
+                    </g>
+                  </svg>
+
+                  @for (region of regions; track region.key) {
+                    <button
+                      type="button"
+                      [class]="'anthropometry-hotspot ' + region.positionClass"
+                      [class.active]="isSelectedRegion(region.key)"
+                      (click)="selectRegion(region.key)"
+                      [attr.aria-label]="region.label"
+                    ></button>
+                  }
+
+                  <article [class]="'anthropometry-tooltip ' + selectedTooltipClass()">
+                    <strong>{{ selectedRegionInfo().label }}</strong>
+                    <span>Perímetro: {{ formatMetric(selectedRegionInfo().value, ' cm') }}</span>
+                    <small>Última medición: {{ formatDate(selectedRegionInfo().measuredAt) }}</small>
+                  </article>
+                </div>
+              </div>
+            </div>
+
+            <div class="anthropometry-map-toolbar">
+              <button type="button" class="btn secondary outline">Vista frontal</button>
+              <div class="anthropometry-map-controls">
+                <button type="button" class="icon-btn" aria-label="Alejar">−</button>
+                <button type="button" class="icon-btn" aria-label="Restablecer">⟳</button>
+                <button type="button" class="icon-btn" aria-label="Acercar">+</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel anthropometry-history-card">
+          <div class="panel-header">
+            <div>
+              <h2>Historial de mediciones</h2>
+              <p class="muted">Selecciona un registro para comparar el snapshot antropométrico.</p>
+            </div>
+          </div>
+
+          <div class="anthropometry-history-list">
+            @for (measurement of anthropometry(); track measurement.id) {
+              <button
+                type="button"
+                class="anthropometry-history-item"
+                [class.active]="isSelectedMeasurement(measurement.id)"
+                (click)="selectMeasurement(measurement.id)"
+              >
+                <div>
+                  <strong>{{ formatDate(measurement.measuredAt) }}</strong>
+                  <span>{{ historyMeasurementCount(measurement) }} perímetros registrados</span>
+                </div>
+                <small>{{ formatShortDate(measurement.measuredAt) }}</small>
+              </button>
+            }
+          </div>
+        </section>
+      }
+    </article>
+
+    <aside class="anthropometry-side-column">
+      <article class="panel anthropometry-patient-card">
+        <div class="panel-header">
+          <div>
+            <h2>Información del paciente</h2>
+            <p class="muted">Resumen combinado desde medidas y composición corporal.</p>
+          </div>
+        </div>
+
+        <div class="anthropometry-patient-head">
+          <div class="anthropometry-avatar">{{ patient?.firstName?.slice(0, 1) || 'P' }}</div>
+          <div>
+            <strong>{{ patient?.fullName || 'Paciente' }}</strong>
+            <span>{{ patient?.nutritionGoal || 'Sin objetivo registrado' }}</span>
+          </div>
+        </div>
+
+        <div class="anthropometry-summary-grid">
+          <article class="anthropometry-summary-tile">
+            <small>Peso</small>
+            <strong>{{ formatMetric(latestMeasurement()!.weightKg, ' kg') }}</strong>
+          </article>
+          <article class="anthropometry-summary-tile">
+            <small>IMC</small>
+            <strong>{{ formatMetric(latestMeasurement()!.bmi) }}</strong>
+          </article>
+          <article class="anthropometry-summary-tile">
+            <small>% Grasa corporal</small>
+            <strong>{{ formatMetric(latestComposition()!.bodyFatPercentage, '%') }}</strong>
+          </article>
+          <article class="anthropometry-summary-tile">
+            <small>Masa muscular</small>
+            <strong>{{ formatMetric(latestComposition()!.muscleMassKg, ' kg') }}</strong>
+          </article>
+        </div>
+
+        <div class="anthropometry-visceral-card">
+          <small>Grasa visceral</small>
+          <strong>{{ formatMetric(latestComposition()!.visceralFatLevel) }}</strong>
+          <span>Última composición: {{ formatShortDate(latestComposition()!.measuredAt) }}</span>
+        </div>
+      </article>
+
+      <article class="panel anthropometry-region-list-card">
+        <div class="panel-header">
+          <div>
+            <h2>Perímetros corporales</h2>
+            <p class="muted">Última fecha registrada por zona corporal.</p>
+          </div>
+        </div>
+
+        <div class="anthropometry-region-list">
+          @for (region of latestRegionRows(); track region.key) {
+            <button
+              type="button"
+              class="anthropometry-region-row"
+              [class.active]="isSelectedRegion(region.key)"
+              (click)="selectRegion(region.key)"
+            >
+              <div>
+                <strong>{{ region.label }}</strong>
+                <span>{{ formatMetric(region.value, ' cm') }}</span>
+              </div>
+              <small>{{ formatShortDate(region.measuredAt) }}</small>
+            </button>
+          }
+        </div>
+      </article>
+    </aside>
+  </section>
+}
+
+<app-modal
+  [open]="editorOpen()"
+  [title]="editingMeasurementId() ? 'Editar medición antropométrica' : 'Nueva medición antropométrica'"
+  eyebrow="Antropometría"
+  (close)="editorOpen.set(false)"
+>
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <div class="form-grid anthropometry-form-grid">
+      <label class="field">
+        <span>Fecha de medición</span>
+        <input type="date" formControlName="measuredAt" />
+      </label>
+      <label class="field">
+        <span>Cuello cm</span>
+        <input type="number" min="0.1" step="0.1" formControlName="neckCm" />
+      </label>
+      <label class="field">
+        <span>Pecho / Tórax cm</span>
+        <input type="number" min="0.1" step="0.1" formControlName="chestThoraxCm" />
+      </label>
+      <label class="field">
+        <span>Brazo derecho cm</span>
+        <input type="number" min="0.1" step="0.1" formControlName="rightArmCm" />
+      </label>
+      <label class="field">
+        <span>Brazo izquierdo cm</span>
+        <input type="number" min="0.1" step="0.1" formControlName="leftArmCm" />
+      </label>
+      <label class="field">
+        <span>Antebrazo derecho cm</span>
+        <input type="number" min="0.1" step="0.1" formControlName="rightForearmCm" />
+      </label>
+      <label class="field">
+        <span>Antebrazo izquierdo cm</span>
+        <input type="number" min="0.1" step="0.1" formControlName="leftForearmCm" />
+      </label>
+      <label class="field">
+        <span>Cintura cm</span>
+        <input type="number" min="0.1" step="0.1" formControlName="waistCm" />
+      </label>
+      <label class="field">
+        <span>Abdomen cm</span>
+        <input type="number" min="0.1" step="0.1" formControlName="abdomenCm" />
+      </label>
+      <label class="field">
+        <span>Cadera cm</span>
+        <input type="number" min="0.1" step="0.1" formControlName="hipCm" />
+      </label>
+      <label class="field">
+        <span>Muslo derecho cm</span>
+        <input type="number" min="0.1" step="0.1" formControlName="rightThighCm" />
+      </label>
+      <label class="field">
+        <span>Muslo izquierdo cm</span>
+        <input type="number" min="0.1" step="0.1" formControlName="leftThighCm" />
+      </label>
+      <label class="field">
+        <span>Pantorrilla derecha cm</span>
+        <input type="number" min="0.1" step="0.1" formControlName="rightCalfCm" />
+      </label>
+      <label class="field">
+        <span>Pantorrilla izquierda cm</span>
+        <input type="number" min="0.1" step="0.1" formControlName="leftCalfCm" />
+      </label>
+    </div>
+
+    @if (formError()) {
+      <p class="danger-text anthropometry-form-error">{{ formError() }}</p>
+    }
+
+    <div class="actions">
+      <button class="btn secondary" type="button" (click)="editorOpen.set(false)">Cancelar</button>
+      <button class="btn" type="submit">
+        {{ editingMeasurementId() ? 'Actualizar medición' : 'Guardar medición' }}
+      </button>
+    </div>
+  </form>
+</app-modal>
+
+<app-modal
+  [open]="deleteOpen()"
+  title="Eliminar medición"
+  eyebrow="Antropometría"
+  (close)="deleteOpen.set(false)"
+>
+  <div class="anthropometry-delete-copy">
+    <p>
+      Se eliminará la medición del
+      <strong>{{ formatDate(selectedMeasurementDate()) }}</strong>.
+    </p>
+    <p>Esta acción quitará el registro del historial antropométrico del paciente.</p>
+  </div>
+  <div class="actions">
+    <button class="btn secondary" type="button" (click)="deleteOpen.set(false)">Cancelar</button>
+    <button class="btn danger" type="button" (click)="deleteSelected()">Eliminar</button>
+  </div>
+</app-modal>

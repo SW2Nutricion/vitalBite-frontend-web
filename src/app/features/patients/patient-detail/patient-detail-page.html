@@ -22,100 +22,79 @@
 } @else {
   <section class="patient-tabs">
     @for (tab of tabs; track tab) {
-      <button type="button" [class.active]="activeTab() === tab" (click)="activeTab.set(tab)">
+      <button type="button" [class.active]="activeTab() === tab" (click)="setActiveTab(tab)">
         {{ tab }}
       </button>
     }
   </section>
 
-  <section class="patient-detail-layout">
-    <div class="patient-detail-main">
-      <article class="patient-summary-card">
-        <div class="patient-panel-title">
-          <div>
-            <h2>Resumen clinico y nutricional</h2>
-            <p>Informacion principal para la atencion del paciente</p>
+  @if (activeTab() === 'Citas') {
+    <app-appointments-calendar
+      [patientId]="patient()?.id ?? null"
+      [patientName]="patient()?.fullName ?? null"
+      [embedded]="true"
+      [initialViewMode]="'WEEK'"
+    ></app-appointments-calendar>
+  } @else if (activeTab() === 'Antropometría') {
+    <app-anthropometry-panel
+      [patientId]="patient()?.id ?? null"
+      [patient]="patient()"
+    ></app-anthropometry-panel>
+  } @else {
+    <section class="patient-detail-layout">
+      <div class="patient-detail-main">
+        <article class="patient-summary-card">
+          <div class="patient-panel-title">
+            <div>
+              <h2>Resumen clinico y nutricional</h2>
+              <p>Informacion principal para la atencion del paciente</p>
+            </div>
           </div>
-          <span class="review-pill">Revisar hoy</span>
-        </div>
 
-        <div class="summary-mini-grid">
-          <div>
-            <small>Contacto</small>
-            <strong>{{ patient()?.email || 'Sin correo' }}</strong>
-            <span>{{ patient()?.phone || 'Sin telefono' }}</span>
+          <div class="summary-mini-grid">
+            <div>
+              <small>Contacto</small>
+              <strong>{{ patient()?.email || 'Sin correo' }}</strong>
+              <span>{{ patient()?.phone || 'Sin telefono' }}</span>
+            </div>
+            <div>
+              <small>Objetivo</small>
+              <strong>{{ patient()?.nutritionGoal || 'Sin objetivo registrado' }}</strong>
+              <span>Plan activo desde mayo</span>
+            </div>
+            <div>
+              <small>Nacimiento</small>
+              <strong>{{ birthLabel() }}</strong>
+              <span>{{ genderLabel() }}</span>
+            </div>
           </div>
-          <div>
-            <small>Objetivo</small>
-            <strong>{{ patient()?.nutritionGoal || 'Sin objetivo registrado' }}</strong>
-            <span>Plan activo desde mayo</span>
-          </div>
-          <div>
-            <small>Nacimiento</small>
-            <strong>{{ birthLabel() }}</strong>
-            <span>{{ genderLabel() }}</span>
-          </div>
-        </div>
 
-        <section class="clinical-note-card">
-          <h3>Notas clinicas</h3>
-          <p>{{ patient()?.clinicalNotes || 'Sin notas clinicas registradas.' }}</p>
-        </section>
+          <section class="clinical-note-card">
+            <h3>Notas clinicas</h3>
+            <p>{{ patient()?.clinicalNotes || 'Sin notas clinicas registradas.' }}</p>
+          </section>
 
-        <section class="activity-card">
-          <h3>Actividad reciente</h3>
-          <div>
-            <span>Cita de control</span>
-            <strong>{{ nextAppointmentTitle() }}</strong>
-          </div>
-          <div>
-            <span>Medidas registradas</span>
-            <strong>{{ latestMeasurementDate() }}</strong>
-          </div>
-          <div>
-            <span>Dieta activa</span>
-            <strong>Plan mayo</strong>
-          </div>
-          <div>
-            <span>Seguimiento pendiente</span>
-            <strong class="danger-text">Revisar</strong>
-          </div>
-        </section>
-      </article>
-    </div>
-
-    <aside class="patient-detail-side">
-      <article class="next-appointment-card">
-        <div class="side-card-title">
-          <h2>Proxima cita</h2>
-          <span>{{ nextAppointment() ? appointmentStatusLabel(nextAppointment()!.status) : 'Pendiente' }}</span>
-        </div>
-        <strong>{{ nextAppointmentTitle() }}</strong>
-        <p>{{ nextAppointment()?.reason || 'Control de medidas y adherencia' }}</p>
-        <ul>
-          <li>Actualizar peso y cintura</li>
-          <li>Revisar registro de comidas</li>
-          <li>Ajustar plan si es necesario</li>
-        </ul>
-      </article>
-
-      <article class="related-modules-card">
-        <h2>Modulos relacionados</h2>
-        <a routerLink="/appointments"><span>Citas</span><svg lucideCalendarDays size="16"></svg></a>
-        <a [routerLink]="['/patients', patient()?.id, 'measurements']"><span>Medidas</span><svg lucideRuler size="16"></svg></a>
-        <span><span>Seguimiento</span><svg lucideActivity size="16"></svg></span>
-        <a [routerLink]="['/patients', patient()?.id, 'diets']"><span>Dietas</span><svg lucideUtensils size="16"></svg></a>
-        <span><span>Documentos</span><svg lucideFolder size="16"></svg></span>
-      </article>
-
-      <article class="patient-actions-card">
-        <h2>Acciones del paciente</h2>
-        <div>
-          <a class="btn" routerLink="/patients">Editar</a>
-          <button class="btn secondary" type="button" (click)="archive()">Archivar</button>
-        </div>
-        <p><span></span> Cambios guardados</p>
-      </article>
-    </aside>
-  </section>
+          <section class="activity-card">
+            <h3>Actividad reciente</h3>
+            <div>
+              <span>Cita de control</span>
+              <strong>{{ nextAppointmentTitle() }}</strong>
+            </div>
+            <div>
+              <span>Medidas registradas</span>
+              <strong>{{ latestMeasurementDate() }}</strong>
+            </div>
+            <div>
+              <span>Dieta activa</span>
+              <strong>Plan mayo</strong>
+            </div>
+            <div>
+              <span>Seguimiento pendiente</span>
+              <strong class="danger-text">Revisar</strong>
+            </div>
+          </section>
+        </article>
+      </div>
+    </section>
+  }
 }

@@ -98,6 +98,29 @@ export interface BodyComposition {
   updatedAt: string;
 }
 
+export interface AnthropometryMeasurement {
+  id: string;
+  tenantId: string;
+  patientId: string;
+  bodyMeasurementId?: string | null;
+  measuredAt: string;
+  neckCm?: number | null;
+  chestThoraxCm?: number | null;
+  rightArmCm?: number | null;
+  leftArmCm?: number | null;
+  rightForearmCm?: number | null;
+  leftForearmCm?: number | null;
+  waistCm?: number | null;
+  abdomenCm?: number | null;
+  hipCm?: number | null;
+  rightThighCm?: number | null;
+  leftThighCm?: number | null;
+  rightCalfCm?: number | null;
+  leftCalfCm?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface DietMealItem {
   id: string;
   dietMealId: string;
@@ -372,4 +395,41 @@ export interface CreateBodyCompositionInput {
   visceralFatLevel?: number | null;
   boneMassKg?: number | null;
   metabolicAge?: number | null;
+}
+
+export interface CreateAnthropometryMeasurementInput {
+  patientId: string;
+  bodyMeasurementId?: string | null;
+  measuredAt: string;
+  neckCm?: number | null;
+  chestThoraxCm?: number | null;
+  rightArmCm?: number | null;
+  leftArmCm?: number | null;
+  rightForearmCm?: number | null;
+  leftForearmCm?: number | null;
+  waistCm?: number | null;
+  abdomenCm?: number | null;
+  hipCm?: number | null;
+  rightThighCm?: number | null;
+  leftThighCm?: number | null;
+  rightCalfCm?: number | null;
+  leftCalfCm?: number | null;
+}
+
+export interface UpdateAnthropometryMeasurementInput {
+  bodyMeasurementId?: string | null;
+  measuredAt?: string | null;
+  neckCm?: number | null;
+  chestThoraxCm?: number | null;
+  rightArmCm?: number | null;
+  leftArmCm?: number | null;
+  rightForearmCm?: number | null;
+  leftForearmCm?: number | null;
+  waistCm?: number | null;
+  abdomenCm?: number | null;
+  hipCm?: number | null;
+  rightThighCm?: number | null;
+  leftThighCm?: number | null;
+  rightCalfCm?: number | null;
+  leftCalfCm?: number | null;
 }
