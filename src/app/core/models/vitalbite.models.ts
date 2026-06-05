@@ -25,6 +25,9 @@ export interface User {
   firstName: string;
   lastName: string;
   roleCode: string;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Patient {
@@ -170,6 +173,46 @@ export interface ResolveSuperAdminPlanChangeInput {
   requestId: string;
   action: 'APPROVE' | 'REJECT';
   comment?: string | null;
+}
+
+export interface CreateUserInput {
+  email: string;
+  firstName: string;
+  lastName: string;
+  roleCode: 'ADMINISTRADOR' | 'ADMIN' | 'NUTRICIONISTA';
+}
+
+export interface UpdateUserInput extends CreateUserInput {
+  userId: string;
+}
+
+export interface AuditEvent {
+  id: string;
+  tenantId?: string | null;
+  tenantName?: string | null;
+  tenantSlug?: string | null;
+  actorUserId?: string | null;
+  actorTenantId?: string | null;
+  actorEmail?: string | null;
+  actorRoleCode?: string | null;
+  action: string;
+  resourceType: string;
+  resourceId?: string | null;
+  summary: string;
+  metadata?: Record<string, unknown> | null;
+  previousHash?: string | null;
+  eventHash: string;
+  createdAt: string;
+}
+
+export interface AuditEventsFilterInput {
+  search?: string | null;
+  tenantId?: string | null;
+  action?: string | null;
+  resourceType?: string | null;
+  dateFrom?: string | null;
+  dateTo?: string | null;
+  limit?: number | null;
 }
 
 export interface CreatePatientInput {

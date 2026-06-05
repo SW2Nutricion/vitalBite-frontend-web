@@ -42,8 +42,10 @@ import { homeRouteFor } from '../../core/guards/role-routing';
 export class MainLayout implements OnInit {
   readonly navItems = [
     { label: 'Tenants', route: '/super-admin/tenants', icon: 'tenants', superAdminOnly: true },
+    { label: 'Auditoria', route: '/audit-log', icon: 'audit', auditOnly: true },
     { label: 'Inicio', route: '/dashboard', icon: 'dashboard' },
     { label: 'Pacientes', route: '/patients', icon: 'patients' },
+    { label: 'Usuarios', route: '/users', icon: 'users', adminOnly: true },
     { label: 'Citas', route: '/appointments', icon: 'appointments' },
     { label: 'Dietas', route: null, icon: 'diets' },
     { label: 'Medidas', route: '/body-measurements', icon: 'measurements' },
@@ -66,10 +68,15 @@ export class MainLayout implements OnInit {
 
   visibleNavItems() {
     if (this.isSuperAdmin()) {
-      return this.navItems.filter((item) => item.superAdminOnly);
+      return this.navItems.filter((item) => item.superAdminOnly || item.auditOnly);
     }
 
-    return this.navItems.filter((item) => !item.superAdminOnly && (!item.adminOnly || this.isAdmin()));
+    return this.navItems.filter(
+      (item) =>
+        !item.superAdminOnly &&
+        (!item.adminOnly || this.isAdmin()) &&
+        (!item.auditOnly || this.isAdmin()),
+    );
   }
 
   roleLabel() {

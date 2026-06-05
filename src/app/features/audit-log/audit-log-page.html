@@ -1,0 +1,167 @@
+<header class="page-header">
+  <div>
+    <h1>Auditoria</h1>
+    <p>Bitacora de acciones criticas con hash local encadenado.</p>
+  </div>
+  <button class="btn secondary" type="button" (click)="load()">Actualizar</button>
+</header>
+
+<form class="audit-filters" [formGroup]="form" (ngSubmit)="load()">
+  <label class="field">
+    <span>Busqueda</span>
+    <input formControlName="search" type="search" placeholder="Actor, tenant, accion o resumen" />
+  </label>
+
+  @if (isSuperAdmin()) {
+    <label class="field">
+      <span>Tenant ID</span>
+      <input formControlName="tenantId" type="text" placeholder="Filtrar por tenant exacto" />
+    </label>
+  }
+
+  <label class="field">
+    <span>Accion</span>
+    <select formControlName="action">
+      <option value="">Todas</option>
+      <option value="USER_CREATED">Usuario creado</option>
+      <option value="PLAN_CHANGE_REQUESTED">Cambio solicitado</option>
+      <option value="PLAN_CHANGE_APPROVED">Cambio aprobado</option>
+      <option value="PLAN_CHANGE_REJECTED">Cambio rechazado</option>
+      <option value="TENANT_STATUS_CHANGED">Estado de tenant</option>
+    </select>
+  </label>
+
+  <label class="field">
+    <span>Recurso</span>
+    <select formControlName="resourceType">
+      <option value="">Todos</option>
+      <option value="USER">Usuario</option>
+      <option value="PLAN_CHANGE_REQUEST">Solicitud de plan</option>
+      <option value="TENANT">Tenant</option>
+    </select>
+  </label>
+
+  <label class="field">
+    <span>Desde</span>
+    <input formControlName="dateFrom" type="date" />
+  </label>
+
+  <label class="field">
+    <span>Hasta</span>
+    <input formControlName="dateTo" type="date" />
+  </label>
+
+  <div class="audit-filter-actions">
+    <button class="btn secondary" type="button" (click)="clearFilters()">Limpiar</button>
+    <button class="btn" type="submit">Filtrar</button>
+  </div>
+</form>
+
+@if (loading()) {
+  <section class="dashboard-state">Cargando auditoria...</section>
+} @else if (error()) {
+  <section class="dashboard-state error">{{ error() }}</section>
+} @else {
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <h2>Eventos registrados</h2>
+        <p class="muted">Ultimos {{ events().length }} eventos visibles para tu rol</p>
+      </div>
+    </div>
+
+    @if (events().length === 0) {
+      <div class="empty-state">No hay eventos de auditoria para los filtros seleccionados.</div>
+    } @else {
+      <table class="data-table audit-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Accion</th>
+            <th>Actor</th>
+            <th>Tenant</th>
+            <th>Recurso</th>
+            <th>Resumen</th>
+            <th>Hash</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (event of events(); track event.id) {
+            <tr>
+              <td>{{ dateLabel(event.createdAt) }}</td>
+              <td><span class="badge">{{ actionLabel(event.action) }}</span></td>
+              <td>
+                <strong>{{ event.actorEmail || 'Sistema' }}</strong>
+                <small>{{ roleLabel(event.actorRoleCode) }}</small>
+              </td>
+              <td>
+                <strong>{{ event.tenantSlug || 'Global' }}</strong>
+                <small>{{ event.tenantName || 'VitalBite' }}</small>
+              </td>
+              <td>
+                <strong>{{ event.resourceType }}</strong>
+                <small>{{ event.resourceId || 'Sin recurso' }}</small>
+              </td>
+              <td>{{ event.summary }}</td>
+              <td><code>{{ shortHash(event.eventHash) }}</code></td>
+              <td>
+                <button class="btn secondary outline" type="button" (click)="openDetail(event)">
+                  Ver
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+}
+
+<app-modal
+  [open]="!!selectedEvent()"
+  title="Detalle de auditoria"
+  eyebrow="Evento critico"
+  (close)="selectedEvent.set(null)"
+>
+  @if (selectedEvent(); as event) {
+    <section class="audit-detail">
+      <div>
+        <small>Accion</small>
+        <strong>{{ actionLabel(event.action) }}</strong>
+      </div>
+      <div>
+        <small>Fecha</small>
+        <strong>{{ dateLabel(event.createdAt) }}</strong>
+      </div>
+      <div>
+        <small>Actor</small>
+        <strong>{{ event.actorEmail || 'Sistema' }}</strong>
+      </div>
+      <div>
+        <small>Tenant afectado</small>
+        <strong>{{ event.tenantSlug || 'Global' }}</strong>
+      </div>
+      <div>
+        <small>Recurso</small>
+        <strong>{{ event.resourceType }} / {{ event.resourceId || 'N/A' }}</strong>
+      </div>
+      <div>
+        <small>Hash anterior</small>
+        <code>{{ shortHash(event.previousHash) }}</code>
+      </div>
+      <div class="wide">
+        <small>Hash del evento</small>
+        <code>{{ event.eventHash }}</code>
+      </div>
+      <div class="wide">
+        <small>Resumen</small>
+        <p>{{ event.summary }}</p>
+      </div>
+      <div class="wide">
+        <small>Metadata</small>
+        <pre>{{ metadataLabel(event.metadata) }}</pre>
+      </div>
+    </section>
+  }
+</app-modal>

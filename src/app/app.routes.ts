@@ -11,6 +11,8 @@ import { AppointmentsPage } from './features/appointments/appointments-page';
 import { BodyMeasurementsPage } from './features/body-measurements/body-measurements-page';
 import { PaymentsSubscriptionsPage } from './features/payments-subscriptions/payments-subscriptions-page';
 import { SuperAdminTenantsPage } from './features/super-admin-tenants/super-admin-tenants-page';
+import { UsersPage } from './features/users/users-page';
+import { AuditLogPage } from './features/audit-log/audit-log-page';
 import { authGuard, permissionGuard, publicOnlyGuard, roleGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -56,6 +58,16 @@ export const routes: Routes = [
         path: 'payments-subscriptions',
         component: PaymentsSubscriptionsPage,
         canActivate: [permissionGuard(['payments:read'])],
+      },
+      {
+        path: 'users',
+        component: UsersPage,
+        canActivate: [permissionGuard(['users:read'])],
+      },
+      {
+        path: 'audit-log',
+        component: AuditLogPage,
+        canActivate: [permissionGuard(['audit-log:read'])],
       },
     ],
   },

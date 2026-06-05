@@ -9,6 +9,9 @@ type PermissionCode =
   | 'appointments:read'
   | 'body-measurements:read'
   | 'payments:read'
+  | 'users:read'
+  | 'users:write'
+  | 'audit-log:read'
   | 'super-admin:read';
 
 const rolePermissions: Record<RoleCode, PermissionCode[]> = {
@@ -18,6 +21,9 @@ const rolePermissions: Record<RoleCode, PermissionCode[]> = {
     'appointments:read',
     'body-measurements:read',
     'payments:read',
+    'users:read',
+    'users:write',
+    'audit-log:read',
   ],
   ADMIN: [
     'dashboard:read',
@@ -25,9 +31,12 @@ const rolePermissions: Record<RoleCode, PermissionCode[]> = {
     'appointments:read',
     'body-measurements:read',
     'payments:read',
+    'users:read',
+    'users:write',
+    'audit-log:read',
   ],
   NUTRICIONISTA: ['dashboard:read', 'patients:read', 'appointments:read', 'body-measurements:read'],
-  SUPER_ADMIN: ['super-admin:read'],
+  SUPER_ADMIN: ['super-admin:read', 'audit-log:read'],
 };
 
 export const authGuard: CanActivateFn = async (_route, state) => {

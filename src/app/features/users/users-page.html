@@ -1,0 +1,184 @@
+<header class="page-header">
+  <div>
+    <h1>Usuarios</h1>
+    <p>Administra el equipo del tenant respetando los limites del plan contratado.</p>
+  </div>
+  <div class="users-actions">
+    <button class="btn secondary" type="button" (click)="load()">
+      <svg lucideRefreshCw size="18"></svg>
+      Actualizar
+    </button>
+    <button class="btn" type="button" (click)="openCreateModal()" [disabled]="userLimitReached()">
+      <svg lucideUserPlus size="18"></svg>
+      Nuevo usuario
+    </button>
+  </div>
+</header>
+
+@if (loading()) {
+  <section class="dashboard-state">Cargando usuarios...</section>
+} @else if (error()) {
+  <section class="dashboard-state error">{{ error() }}</section>
+} @else {
+  <section class="users-kpis">
+    <article>
+      <span><svg lucideUsers size="20"></svg></span>
+      <div>
+        <small>Usuarios activos</small>
+        <strong>{{ activeUsersCount() }}</strong>
+      </div>
+    </article>
+    <article [class.warning]="userLimitReached()">
+      <span><svg lucideShield size="20"></svg></span>
+      <div>
+        <small>Usuarios del plan</small>
+        <strong>{{ activeUsersCount() }}{{ isIndividualPlan() ? '/1' : '' }}</strong>
+      </div>
+    </article>
+    <article>
+      <span><svg lucideCheckCircle2 size="20"></svg></span>
+      <div>
+        <small>Plan activo</small>
+        <strong>{{ subscription()?.planName || 'Sin plan' }}</strong>
+        <em>{{ planPriceLabel() }}</em>
+      </div>
+    </article>
+  </section>
+
+  @if (userLimitReached()) {
+    <section class="limit-alert">
+      El plan individual permite solo 1 usuario activo total. Para agregar mas usuarios, solicita el
+      cambio a plan clinica.
+    </section>
+  }
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <h2>Equipo del tenant</h2>
+        <p class="muted">Usuarios activos y deshabilitados del tenant</p>
+      </div>
+    </div>
+
+    @if (actionError()) {
+      <p class="form-message danger-text table-message">{{ actionError() }}</p>
+    }
+
+    @if (users().length === 0) {
+      <div class="empty-state">No hay usuarios registrados.</div>
+    } @else {
+      <table class="data-table users-table">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Creado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of users(); track user.id) {
+            <tr>
+              <td>
+                <strong>{{ user.firstName }} {{ user.lastName }}</strong>
+                <small>{{ user.email }}</small>
+              </td>
+              <td>{{ roleLabel(user.roleCode) }}</td>
+              <td>
+                <span class="badge" [class.danger]="isDisabled(user)">
+                  {{ statusLabel(user.status) }}
+                </span>
+              </td>
+              <td>{{ dateLabel(user.createdAt) }}</td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    class="btn secondary outline"
+                    type="button"
+                    (click)="openEditModal(user)"
+                    [disabled]="actingUserId() === user.id"
+                  >
+                    Editar
+                  </button>
+                  @if (isActive(user)) {
+                    <button
+                      class="btn danger"
+                      type="button"
+                      (click)="disableUser(user)"
+                      [disabled]="actingUserId() === user.id"
+                    >
+                      {{ actingUserId() === user.id ? 'Procesando...' : 'Desactivar' }}
+                    </button>
+                  } @else {
+                    <button
+                      class="btn secondary"
+                      type="button"
+                      (click)="reactivateUser(user)"
+                      [disabled]="actingUserId() === user.id || isIndividualPlan()"
+                    >
+                      {{ actingUserId() === user.id ? 'Procesando...' : 'Reactivar' }}
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+
+  <app-modal [open]="modalOpen()" [title]="modalTitle()" eyebrow="Equipo del tenant" (close)="modalOpen.set(false)">
+    <form class="user-form" [formGroup]="form" (ngSubmit)="submit()">
+      @if (!editingUser()) {
+        <section class="temp-password">
+          <strong>Contraseña temporal</strong>
+          <span>El nuevo usuario ingresara con <b>demo1234</b>.</span>
+        </section>
+      }
+
+      <div class="user-form-grid">
+        <label class="field">
+          <span>Nombres</span>
+          <input formControlName="firstName" type="text" placeholder="Andrea" />
+        </label>
+
+        <label class="field">
+          <span>Apellidos</span>
+          <input formControlName="lastName" type="text" placeholder="Morales" />
+        </label>
+
+        <label class="field wide">
+          <span>Email</span>
+          <input formControlName="email" type="email" placeholder="usuario@vitalbite.com" />
+        </label>
+
+        <label class="field wide">
+          <span>Rol</span>
+          <select formControlName="roleCode">
+            <option value="NUTRICIONISTA">Nutricionista</option>
+            <option value="ADMINISTRADOR">Administrador</option>
+          </select>
+        </label>
+      </div>
+
+      @if (isBlockedByLimit()) {
+        <p class="form-message warning-text">
+          El plan individual permite solo 1 usuario activo total. Solicita plan clinica para crear mas usuarios.
+        </p>
+      }
+
+      @if (formError()) {
+        <p class="form-message danger-text">{{ formError() }}</p>
+      }
+
+      <div class="actions">
+        <button class="btn secondary" type="button" (click)="modalOpen.set(false)">Cancelar</button>
+        <button class="btn" type="submit" [disabled]="saving() || isBlockedByLimit()">
+          {{ saving() ? 'Guardando...' : editingUser() ? 'Guardar cambios' : 'Crear usuario' }}
+        </button>
+      </div>
+    </form>
+  </app-modal>
+}
