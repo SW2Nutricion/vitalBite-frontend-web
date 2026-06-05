@@ -1,0 +1,252 @@
+<header class="page-header">
+  <div>
+    <h1>Tenants VitalBite</h1>
+    <p>Gestion global de estados operativos, suscripciones y solicitudes comerciales.</p>
+  </div>
+  <button class="btn secondary" type="button" (click)="load()">
+    <svg lucideRefreshCw size="18"></svg>
+    Actualizar
+  </button>
+</header>
+
+<section class="super-kpis">
+  <article>
+    <span><svg lucideBuilding2 size="20"></svg></span>
+    <div>
+      <small>Tenants activos en panel</small>
+      <strong>{{ tenants().length }}</strong>
+    </div>
+  </article>
+  <article>
+    <span><svg lucideShield size="20"></svg></span>
+    <div>
+      <small>Solicitudes pendientes</small>
+      <strong>{{ pendingCount() }}</strong>
+    </div>
+  </article>
+</section>
+
+<section class="toolbar">
+  <input
+    class="search-input"
+    type="search"
+    placeholder="Buscar por nombre o slug"
+    [value]="search()"
+    (input)="updateSearch($event)"
+  />
+  <select class="search-input compact-select" [value]="status()" (change)="updateStatusFilter($event)">
+    <option value="">Todos los estados</option>
+    <option value="ACTIVE">Activos</option>
+    <option value="SUSPENDED">Suspendidos</option>
+    <option value="DISABLED">Deshabilitados</option>
+  </select>
+  <button class="btn" type="button" (click)="load()">Aplicar filtros</button>
+</section>
+
+@if (loading()) {
+  <section class="dashboard-state">Cargando tenants...</section>
+} @else if (error()) {
+  <section class="dashboard-state error">{{ error() }}</section>
+} @else {
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <h2>Gestion global</h2>
+        <p class="muted">Tenants clinicos conectados al ecosistema VitalBite</p>
+      </div>
+    </div>
+
+    @if (tenants().length === 0) {
+      <div class="empty-state">No hay tenants que coincidan con los filtros.</div>
+    } @else {
+      <table class="data-table super-table">
+        <thead>
+          <tr>
+            <th>Tenant</th>
+            <th>Estado</th>
+            <th>Plan</th>
+            <th>Revision</th>
+            <th>Usuarios</th>
+            <th>Pacientes</th>
+            <th>Pendientes</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of tenants(); track item.tenant.id) {
+            <tr>
+              <td>
+                <strong>{{ item.tenant.name }}</strong>
+                <small>{{ item.tenant.slug }}</small>
+              </td>
+              <td>
+                <span
+                  class="badge"
+                  [class.warning]="badgeClass(item.tenant.status) === 'warning'"
+                  [class.danger]="badgeClass(item.tenant.status) === 'danger'"
+                >
+                  {{ statusLabel(item.tenant.status) }}
+                </span>
+              </td>
+              <td>{{ item.subscription?.planName || 'Sin plan' }}</td>
+              <td>{{ dateLabel(item.subscription?.nextReviewAt) }}</td>
+              <td>{{ item.usersCount }}</td>
+              <td>{{ item.patientsCount }}</td>
+              <td>{{ item.pendingPlanChangeRequestsCount }}</td>
+              <td>
+                <button class="btn secondary compact" type="button" (click)="openDetail(item.tenant.id)">
+                  <svg lucideEye size="16"></svg>
+                  Ver
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+}
+
+<app-modal
+  [open]="modalOpen()"
+  title="Detalle global del tenant"
+  eyebrow="Super Admin"
+  (close)="modalOpen.set(false)"
+>
+  @if (detailLoading()) {
+    <div class="empty-state">Cargando detalle...</div>
+  } @else if (detailError()) {
+    <div class="error-state">{{ detailError() }}</div>
+  } @else if (selectedDetail()) {
+    <section class="tenant-detail">
+      <div class="detail-head">
+        <div>
+          <h2>{{ selectedDetail()?.tenant?.name }}</h2>
+          <p>{{ selectedDetail()?.tenant?.slug }}</p>
+        </div>
+        <span
+          class="badge"
+          [class.warning]="badgeClass(selectedDetail()?.tenant?.status) === 'warning'"
+          [class.danger]="badgeClass(selectedDetail()?.tenant?.status) === 'danger'"
+        >
+          {{ statusLabel(selectedDetail()?.tenant?.status) }}
+        </span>
+      </div>
+
+      <div class="detail-grid">
+        <div>
+          <small>Plan</small>
+          <strong>{{ selectedDetail()?.subscription?.planName || 'Sin plan' }}</strong>
+        </div>
+        <div>
+          <small>Usuarios</small>
+          <strong>{{ selectedDetail()?.usersCount }}</strong>
+        </div>
+        <div>
+          <small>Pacientes</small>
+          <strong>{{ selectedDetail()?.patientsCount }}</strong>
+        </div>
+      </div>
+
+      <div class="status-actions">
+        <button
+          class="btn secondary compact"
+          type="button"
+          [disabled]="saving()"
+          (click)="updateStatus(selectedDetail()!.tenant, 'ACTIVE')"
+        >
+          Activar
+        </button>
+        <button
+          class="btn secondary compact"
+          type="button"
+          [disabled]="saving()"
+          (click)="updateStatus(selectedDetail()!.tenant, 'SUSPENDED')"
+        >
+          Suspender
+        </button>
+        <button
+          class="btn danger compact"
+          type="button"
+          [disabled]="saving()"
+          (click)="updateStatus(selectedDetail()!.tenant, 'DISABLED')"
+        >
+          Deshabilitar
+        </button>
+      </div>
+
+      <div class="requests-panel">
+        <h3>Solicitudes de cambio de plan</h3>
+        @if ((selectedDetail()?.planChangeRequests || []).length === 0) {
+          <p class="muted">No hay solicitudes registradas para este tenant.</p>
+        } @else {
+          <div class="request-list">
+            @for (request of selectedDetail()?.planChangeRequests || []; track request.requestId) {
+              <article>
+                <div>
+                  <strong>{{ request.requestedPlanName }}</strong>
+                  <small>{{ request.currentPlanCode }} -> {{ request.requestedPlanCode }}</small>
+                  <small>Solicitado el {{ dateLabel(request.requestedAt) }}</small>
+                  @if (request.comment) {
+                    <p>{{ request.comment }}</p>
+                  }
+                </div>
+                <div class="request-actions">
+                  <span
+                    class="badge"
+                    [class.warning]="badgeClass(request.status) === 'warning'"
+                    [class.danger]="badgeClass(request.status) === 'danger'"
+                  >
+                    {{ requestStatusLabel(request.status) }}
+                  </span>
+                  @if (isPending(request)) {
+                    <button class="btn secondary compact" type="button" (click)="openResolveModal(request, 'APPROVE')">
+                      <svg lucideCheckCircle2 size="16"></svg>
+                      Aprobar
+                    </button>
+                    <button class="btn danger compact" type="button" (click)="openResolveModal(request, 'REJECT')">
+                      <svg lucideX size="16"></svg>
+                      Rechazar
+                    </button>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+</app-modal>
+
+<app-modal
+  [open]="resolveModalOpen()"
+  [title]="resolveTitle()"
+  eyebrow="Revision global"
+  (close)="resolveModalOpen.set(false)"
+>
+  <form class="resolve-form" (ngSubmit)="resolveRequest()">
+    <div class="current-plan-box">
+      <small>Solicitud seleccionada</small>
+      <strong>{{ selectedRequest()?.requestedPlanName || 'Sin solicitud' }}</strong>
+      <span>{{ requestStatusLabel(selectedRequest()?.status) }}</span>
+    </div>
+
+    <label class="field">
+      <span>Comentario opcional</span>
+      <textarea
+        rows="4"
+        [value]="resolveComment()"
+        (input)="updateResolveComment($event)"
+        placeholder="Agrega una nota para el historial comercial"
+      ></textarea>
+    </label>
+
+    <div class="actions">
+      <button class="btn secondary" type="button" (click)="resolveModalOpen.set(false)">Cancelar</button>
+      <button class="btn" type="submit" [class.danger]="resolveAction() === 'REJECT'" [disabled]="saving()">
+        {{ saving() ? 'Guardando...' : resolveTitle() }}
+      </button>
+    </div>
+  </form>
+</app-modal>

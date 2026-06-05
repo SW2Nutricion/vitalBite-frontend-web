@@ -6,7 +6,6 @@ import {
   LucideCheckCircle2,
   LucideCreditCard,
   LucideRefreshCw,
-  LucideX,
   LucideUserRoundCheck,
 } from '@lucide/angular';
 import {
@@ -29,7 +28,6 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
     LucideCheckCircle2,
     LucideCreditCard,
     LucideRefreshCw,
-    LucideX,
     LucideUserRoundCheck,
   ],
   templateUrl: './payments-subscriptions-page.html',

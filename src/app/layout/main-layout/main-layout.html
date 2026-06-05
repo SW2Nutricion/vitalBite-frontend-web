@@ -1,6 +1,6 @@
 <div class="app-shell">
   <aside class="sidebar">
-    <a class="brand" routerLink="/dashboard">
+    <a class="brand" [routerLink]="homeRoute()">
       <span class="brand-mark"><svg lucideHeartPulse size="22"></svg></span>
       <span>VitalBite</span>
     </a>
@@ -27,6 +27,9 @@
               }
               @case ('payments') {
                 <svg lucideCreditCard size="18"></svg>
+              }
+              @case ('tenants') {
+                <svg lucideBuilding2 size="18"></svg>
               }
               @case ('reports') {
                 <svg lucideFolder size="18"></svg>

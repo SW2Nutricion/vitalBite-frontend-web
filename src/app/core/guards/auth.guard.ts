@@ -1,14 +1,15 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { SessionService } from '../services/session.service';
+import { RoleCode, homeRouteFor, normalizeRole } from './role-routing';
 
-type RoleCode = 'ADMINISTRADOR' | 'ADMIN' | 'NUTRICIONISTA';
 type PermissionCode =
   | 'dashboard:read'
   | 'patients:read'
   | 'appointments:read'
   | 'body-measurements:read'
-  | 'payments:read';
+  | 'payments:read'
+  | 'super-admin:read';
 
 const rolePermissions: Record<RoleCode, PermissionCode[]> = {
   ADMINISTRADOR: [
@@ -26,6 +27,7 @@ const rolePermissions: Record<RoleCode, PermissionCode[]> = {
     'payments:read',
   ],
   NUTRICIONISTA: ['dashboard:read', 'patients:read', 'appointments:read', 'body-measurements:read'],
+  SUPER_ADMIN: ['super-admin:read'],
 };
 
 export const authGuard: CanActivateFn = async (_route, state) => {
@@ -59,7 +61,7 @@ export const publicOnlyGuard: CanActivateFn = async () => {
     return true;
   }
 
-  return router.createUrlTree(['/dashboard']);
+  return router.createUrlTree([homeRouteFor(session.user()?.roleCode)]);
 };
 
 export function roleGuard(allowedRoles: RoleCode[]): CanActivateFn {
@@ -74,7 +76,9 @@ export function roleGuard(allowedRoles: RoleCode[]): CanActivateFn {
     }
 
     const roleCode = normalizeRole(session.user()?.roleCode);
-    return roleCode && allowedRoles.includes(roleCode) ? true : router.createUrlTree(['/dashboard']);
+    return roleCode && allowedRoles.includes(roleCode)
+      ? true
+      : router.createUrlTree([homeRouteFor(session.user()?.roleCode)]);
   };
 }
 
@@ -93,15 +97,6 @@ export function permissionGuard(requiredPermissions: PermissionCode[]): CanActiv
     const permissions = roleCode ? rolePermissions[roleCode] : [];
     const canActivate = requiredPermissions.every((permission) => permissions.includes(permission));
 
-    return canActivate ? true : router.createUrlTree(['/dashboard']);
+    return canActivate ? true : router.createUrlTree([homeRouteFor(session.user()?.roleCode)]);
   };
-}
-
-function normalizeRole(roleCode?: string | null): RoleCode | null {
-  const normalized = roleCode?.trim().toUpperCase();
-  if (normalized === 'ADMINISTRADOR' || normalized === 'ADMIN' || normalized === 'NUTRICIONISTA') {
-    return normalized;
-  }
-
-  return null;
 }

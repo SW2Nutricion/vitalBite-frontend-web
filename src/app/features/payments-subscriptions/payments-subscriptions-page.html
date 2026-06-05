@@ -142,16 +142,6 @@
               >
                 {{ requestStatusLabel(request.status) }}
               </span>
-              @if (isPending(request)) {
-                <button class="btn secondary compact" type="button" (click)="openResolveModal(request, 'approve')">
-                  <svg lucideCheckCircle2 size="16"></svg>
-                  Aprobar
-                </button>
-                <button class="btn danger compact" type="button" (click)="openResolveModal(request, 'reject')">
-                  <svg lucideX size="16"></svg>
-                  Rechazar
-                </button>
-              }
             </div>
           </article>
         }
@@ -210,43 +200,4 @@
     </form>
   </app-modal>
 
-  <app-modal
-    [open]="resolveModalOpen()"
-    [title]="resolveTitle()"
-    eyebrow="Revision administrativa"
-    (close)="resolveModalOpen.set(false)"
-  >
-    <form class="plan-change-form" [formGroup]="resolveForm" (ngSubmit)="submitResolution()">
-      <div class="current-plan-box">
-        <small>Solicitud seleccionada</small>
-        <strong>{{ selectedRequest()?.requestedPlanName || 'Sin solicitud' }}</strong>
-        <span>{{ requestStatusLabel(selectedRequest()?.status) }}</span>
-      </div>
-
-      <label class="field">
-        <span>Comentario opcional</span>
-        <textarea
-          rows="4"
-          formControlName="comment"
-          placeholder="Agrega una nota administrativa para el historial"
-        ></textarea>
-      </label>
-
-      @if (resolveError()) {
-        <p class="danger-text">{{ resolveError() }}</p>
-      }
-
-      <div class="actions">
-        <button class="btn secondary" type="button" (click)="resolveModalOpen.set(false)">Cancelar</button>
-        <button
-          class="btn"
-          type="submit"
-          [class.danger]="resolveAction() === 'reject'"
-          [disabled]="resolving()"
-        >
-          {{ resolveButtonLabel() }}
-        </button>
-      </div>
-    </form>
-  </app-modal>
 }

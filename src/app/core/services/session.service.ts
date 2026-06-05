@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AUTH_TOKEN_STORAGE_KEY, GraphqlService } from '../graphql/graphql.service';
+import { homeRouteFor } from '../guards/role-routing';
 import { Tenant, User } from '../models/vitalbite.models';
 
 const CURRENT_CONTEXT = `
@@ -130,7 +131,7 @@ export class SessionService {
       localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, data.login.accessToken);
       this.user.set(data.login.user);
       this.tenant.set(data.login.tenant);
-      await this.router.navigateByUrl('/dashboard');
+      await this.router.navigateByUrl(homeRouteFor(data.login.user.roleCode));
     } finally {
       this.loading.set(false);
     }
@@ -146,7 +147,7 @@ export class SessionService {
       localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, data.register.accessToken);
       this.user.set(data.register.user);
       this.tenant.set(data.register.tenant);
-      await this.router.navigateByUrl('/dashboard');
+      await this.router.navigateByUrl(homeRouteFor(data.register.user.roleCode));
     } finally {
       this.loading.set(false);
     }

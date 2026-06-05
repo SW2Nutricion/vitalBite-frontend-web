@@ -14,6 +14,8 @@ export interface Tenant {
   name: string;
   slug: string;
   status: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface User {
@@ -139,6 +141,34 @@ export interface RequestPlanChangeInput {
 
 export interface ResolvePlanChangeInput {
   requestId: string;
+  comment?: string | null;
+}
+
+export interface SuperAdminTenantOverview {
+  tenant: Tenant;
+  subscription?: TenantSubscription | null;
+  pendingPlanChangeRequestsCount: number;
+  usersCount: number;
+  patientsCount: number;
+}
+
+export interface SuperAdminTenantDetail {
+  tenant: Tenant;
+  subscription?: TenantSubscription | null;
+  planChangeRequests: PlanChangeRequest[];
+  usersCount: number;
+  patientsCount: number;
+}
+
+export interface UpdateTenantStatusInput {
+  tenantId: string;
+  status: 'ACTIVE' | 'SUSPENDED' | 'DISABLED';
+}
+
+export interface ResolveSuperAdminPlanChangeInput {
+  tenantId: string;
+  requestId: string;
+  action: 'APPROVE' | 'REJECT';
   comment?: string | null;
 }
 

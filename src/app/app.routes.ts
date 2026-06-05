@@ -10,6 +10,7 @@ import { PatientDetailPage } from './features/patients/patient-detail/patient-de
 import { AppointmentsPage } from './features/appointments/appointments-page';
 import { BodyMeasurementsPage } from './features/body-measurements/body-measurements-page';
 import { PaymentsSubscriptionsPage } from './features/payments-subscriptions/payments-subscriptions-page';
+import { SuperAdminTenantsPage } from './features/super-admin-tenants/super-admin-tenants-page';
 import { authGuard, permissionGuard, publicOnlyGuard, roleGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -19,8 +20,13 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayout,
-    canActivate: [authGuard, roleGuard(['ADMINISTRADOR', 'ADMIN', 'NUTRICIONISTA'])],
+    canActivate: [authGuard, roleGuard(['ADMINISTRADOR', 'ADMIN', 'NUTRICIONISTA', 'SUPER_ADMIN'])],
     children: [
+      {
+        path: 'super-admin/tenants',
+        component: SuperAdminTenantsPage,
+        canActivate: [permissionGuard(['super-admin:read'])],
+      },
       {
         path: 'dashboard',
         component: DashboardPage,
