@@ -28,7 +28,7 @@ export class PatientDetailPage implements OnInit {
   readonly measurements = signal<BodyMeasurement[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
-  readonly tabs = ['Resumen', 'Citas', 'Antropometría', 'Medidas', 'Seguimiento', 'Dietas', 'Documentos'];
+  readonly tabs = ['Resumen', 'Citas', 'Antropometría', 'Dietas', 'Documentos'];
   readonly activeTab = signal('Resumen');
   readonly sortedAppointments = computed(() =>
     [...this.appointments()].sort(
@@ -137,6 +137,11 @@ export class PatientDetailPage implements OnInit {
   }
 
   async setActiveTab(tab: string) {
+    if (tab === 'Dietas' && this.patient()?.id) {
+      await this.router.navigate(['/patients', this.patient()!.id, 'diets']);
+      return;
+    }
+
     this.activeTab.set(tab);
     await this.router.navigate([], {
       relativeTo: this.route,

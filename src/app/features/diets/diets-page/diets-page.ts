@@ -18,6 +18,23 @@ import { ModalComponent } from '../../../shared/components/modal/modal.component
 
 type DietTab = 'ALL' | 'ACTIVE' | 'DRAFT' | 'EXPIRING';
 
+const WEEK_DAYS = [
+  'Lunes',
+  'Martes',
+  'Miercoles',
+  'Jueves',
+  'Viernes',
+  'Sabado',
+  'Domingo',
+];
+
+const BASE_MEALS = [
+  { time: '08:00', name: 'Desayuno', targetCalories: 420 },
+  { time: '12:30', name: 'Almuerzo', targetCalories: 560 },
+  { time: '16:30', name: 'Merienda', targetCalories: 200 },
+  { time: '20:00', name: 'Cena', targetCalories: 390 },
+];
+
 @Component({
   selector: 'app-diets-page',
   imports: [
@@ -212,24 +229,19 @@ export class DietsPage implements OnInit {
   }
 
   private initialStructure(mealsPerDay: number) {
-    const baseMeals = [
-      { name: 'Desayuno', targetCalories: 420 },
-      { name: 'Almuerzo', targetCalories: 560 },
-      { name: 'Cena', targetCalories: 390 },
-      { name: 'Colaciones', targetCalories: 200 },
-    ].slice(0, Math.max(1, mealsPerDay));
+    const baseMeals = BASE_MEALS.slice(0, Math.max(1, mealsPerDay));
 
-    return [
-      {
-        dayLabel: 'Lunes',
-        dayOrder: 1,
-        meals: baseMeals.map((meal, index) => ({
-          ...meal,
-          mealOrder: index + 1,
-          items: [],
-        })),
-      },
-    ];
+    return WEEK_DAYS.map((dayLabel, dayIndex) => ({
+      dayLabel,
+      dayOrder: dayIndex + 1,
+      meals: baseMeals.map((meal, index) => ({
+        name: meal.name,
+        notes: meal.time,
+        targetCalories: meal.targetCalories,
+        mealOrder: index + 1,
+        items: [],
+      })),
+    }));
   }
 
   private today() {
