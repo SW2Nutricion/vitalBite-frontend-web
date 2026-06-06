@@ -1,10 +1,9 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
-  LucideBookOpen,
-  LucideCheck,
-  LucideDownload,
-  LucideFileText,
+  LucideArrowDown,
+  LucideArrowUp,
+  LucideCopy,
   LucidePlus,
   LucideSave,
   LucideTrash2,
@@ -21,6 +20,8 @@ import { DietsService } from '../../../core/services/diets.service';
 import { PatientsService } from '../../../core/services/patients.service';
 
 type SaveMode = 'draft' | 'update' | '';
+type DayStatus = 'empty' | 'in-progress' | 'complete';
+type MealStatus = 'pending' | 'on-target' | 'above-target' | 'below-target';
 
 type WeekDay = {
   label: string;
@@ -33,12 +34,37 @@ type MealTemplate = {
   targetCalories: number;
 };
 
-type ScheduleRow = {
+type WeekDayCard = {
+  dayId: string;
+  dayOrder: number;
+  fullLabel: string;
+  shortLabel: string;
+  consumedCalories: number;
+  targetCalories: number;
+  progress: number;
+  status: DayStatus;
+  statusLabel: string;
+  isSelected: boolean;
+};
+
+type SelectedMealCard = {
+  id: string;
   mealOrder: number;
   name: string;
   time: string;
+  targetCalories: number;
+  consumedCalories: number;
+  differenceCalories: number;
   itemCount: number;
-  totalCalories: number;
+  status: MealStatus;
+  statusLabel: string;
+  items: DietMealItem[];
+};
+
+type WeeklyCompletion = {
+  completedDays: number;
+  totalDays: number;
+  percent: number;
 };
 
 const WEEK_DAYS: WeekDay[] = [
@@ -51,6 +77,16 @@ const WEEK_DAYS: WeekDay[] = [
   { label: 'Domingo', order: 7 },
 ];
 
+const DAY_SHORT_LABELS: Record<string, string> = {
+  Lunes: 'Lun',
+  Martes: 'Mar',
+  Miercoles: 'Mie',
+  Jueves: 'Jue',
+  Viernes: 'Vie',
+  Sabado: 'Sab',
+  Domingo: 'Dom',
+};
+
 const DEFAULT_MEALS: MealTemplate[] = [
   { time: '08:00', name: 'Desayuno', targetCalories: 420 },
   { time: '12:30', name: 'Almuerzo', targetCalories: 560 },
@@ -62,10 +98,9 @@ const DEFAULT_MEALS: MealTemplate[] = [
   selector: 'app-diet-editor-page',
   imports: [
     RouterLink,
-    LucideBookOpen,
-    LucideCheck,
-    LucideDownload,
-    LucideFileText,
+    LucideArrowDown,
+    LucideArrowUp,
+    LucideCopy,
     LucidePlus,
     LucideSave,
     LucideTrash2,
@@ -83,30 +118,66 @@ export class DietEditorPage implements OnInit {
   readonly error = signal('');
   readonly successMessage = signal('');
   readonly actionError = signal('');
-  readonly weekDays = WEEK_DAYS;
+  readonly selectedDayOrder = signal(1);
+  readonly selectedMealOrder = signal<number | null>(1);
+  readonly pendingDeleteMealOrder = signal<number | null>(null);
 
-  readonly scheduleRows = computed<ScheduleRow[]>(() =>
-    this.mealOrders().map((mealOrder) => {
-      const meals = this.days()
-        .map((day) => this.mealForOrder(day, mealOrder))
-        .filter((meal): meal is DietMeal => Boolean(meal));
-      const firstMeal = meals[0];
+  readonly selectedDay = computed<DietPlanDay | null>(() => {
+    const days = this.sortedDays();
+    return days.find((day) => day.dayOrder === this.selectedDayOrder()) ?? days[0] ?? null;
+  });
+  readonly selectedMeals = computed<SelectedMealCard[]>(() => {
+    const day = this.selectedDay();
+    if (!day) return [];
+
+    return [...day.meals]
+      .sort((current, next) => current.mealOrder - next.mealOrder)
+      .map((meal) => {
+        const consumedCalories = this.mealCalories(meal);
+        const targetCalories = Number(meal.targetCalories) || 0;
+        const status = this.mealStatus(meal);
+
+        return {
+          id: meal.id,
+          mealOrder: meal.mealOrder,
+          name: meal.name,
+          time: meal.notes || this.defaultMealTemplate(meal.mealOrder).time,
+          targetCalories,
+          consumedCalories,
+          differenceCalories: consumedCalories - targetCalories,
+          itemCount: meal.items.length,
+          status,
+          statusLabel: this.mealStatusLabel(status),
+          items: meal.items,
+        };
+      });
+  });
+  readonly weeklyDayCards = computed<WeekDayCard[]>(() =>
+    this.sortedDays().map((day) => {
+      const targetCalories = this.dayTargetCalories(day);
+      const consumedCalories = this.dayCalories(day);
+      const status = this.dayStatus(day);
 
       return {
-        mealOrder,
-        name: firstMeal?.name ?? this.defaultMealTemplate(mealOrder).name,
-        time: firstMeal?.notes ?? this.defaultMealTemplate(mealOrder).time,
-        itemCount: meals.reduce((total, meal) => total + meal.items.length, 0),
-        totalCalories: meals.reduce((total, meal) => total + this.mealCalories(meal), 0),
+        dayId: day.id,
+        dayOrder: day.dayOrder,
+        fullLabel: day.dayLabel,
+        shortLabel: DAY_SHORT_LABELS[day.dayLabel] ?? day.dayLabel.slice(0, 3),
+        consumedCalories,
+        targetCalories,
+        progress: this.progressPercentage(consumedCalories, targetCalories),
+        status,
+        statusLabel: this.dayStatusLabel(status),
+        isSelected: day.dayOrder === this.selectedDay()?.dayOrder,
       };
     }),
   );
-  readonly activeMealsCount = computed(() => this.scheduleRows().length);
+  readonly activeMealsCount = computed(() => this.selectedMeals().length);
   readonly activeItemsCount = computed(() =>
-    this.days().reduce(
-      (total, day) => total + day.meals.reduce((dayTotal, meal) => dayTotal + meal.items.length, 0),
-      0,
-    ),
+    this.selectedMeals().reduce((total, meal) => total + meal.items.length, 0),
+  );
+  readonly weeklyMealsPerDayMax = computed(() =>
+    this.days().reduce((max, day) => Math.max(max, day.meals.length), 0),
   );
   readonly weeklyCalories = computed(() =>
     this.days().reduce((total, day) => total + this.dayCalories(day), 0),
@@ -114,6 +185,43 @@ export class DietEditorPage implements OnInit {
   readonly averageDailyCalories = computed(() =>
     this.days().length ? Math.round(this.weeklyCalories() / this.days().length) : 0,
   );
+  readonly dailyTargetCalories = computed(() => {
+    const day = this.selectedDay();
+    return day ? this.dayTargetCalories(day) : 0;
+  });
+  readonly dailyConsumedCalories = computed(() => {
+    const day = this.selectedDay();
+    return day ? this.dayCalories(day) : 0;
+  });
+  readonly dailyDifferenceCalories = computed(
+    () => this.dailyConsumedCalories() - this.dailyTargetCalories(),
+  );
+  readonly weeklyCompletion = computed<WeeklyCompletion>(() => {
+    const days = this.sortedDays();
+    const completedDays = days.filter((day) => this.dayStatus(day) === 'complete').length;
+
+    return {
+      completedDays,
+      totalDays: days.length,
+      percent: days.length ? Math.round((completedDays / days.length) * 100) : 0,
+    };
+  });
+  readonly nextAdjustmentMessage = computed(() => {
+    const pendingDay = this.sortedDays().find((day) => this.dayStatus(day) !== 'complete');
+    if (!pendingDay) {
+      return 'La semana actual ya cubre todos los horarios del plan.';
+    }
+
+    const missingMeals = pendingDay.meals
+      .filter((meal) => this.mealStatus(meal) === 'pending')
+      .map((meal) => meal.name.toLowerCase());
+
+    if (!missingMeals.length) {
+      return `${pendingDay.dayLabel} necesita revisar porciones para cerrar la meta diaria.`;
+    }
+
+    return `${pendingDay.dayLabel} necesita completar ${missingMeals.join(', ')} para equilibrar la semana.`;
+  });
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -139,7 +247,8 @@ export class DietEditorPage implements OnInit {
       ]);
       this.patient.set(patient);
       this.diet.set(diet);
-      this.days.set(this.normalizeWeek(diet.days, diet.mealsPerDay ?? DEFAULT_MEALS.length));
+      this.days.set(this.normalizeWeek(diet.days));
+      this.resetSelection();
     } catch {
       this.error.set('No se pudo cargar el editor de dieta.');
     } finally {
@@ -155,46 +264,151 @@ export class DietEditorPage implements OnInit {
     await this.save('ACTIVE');
   }
 
+  selectDay(dayOrder: number) {
+    this.selectedDayOrder.set(dayOrder);
+    this.pendingDeleteMealOrder.set(null);
+    this.ensureSelectedMealOrder();
+  }
+
+  selectMeal(mealOrder: number) {
+    this.selectedMealOrder.set(mealOrder);
+  }
+
+  duplicateScheduleRow(mealOrder: number) {
+    const selectedDay = this.selectedDay();
+    if (!selectedDay) return;
+
+    const sourceMeal = selectedDay.meals.find((meal) => meal.mealOrder === mealOrder);
+    if (!sourceMeal) return;
+
+    const duplicatedMealOrder = selectedDay.meals.length + 1;
+
+    this.days.update((days) =>
+      days.map((day) => {
+        if (day.id !== selectedDay.id) return day;
+
+        const duplicatedMeal = this.duplicateMeal(day.id, sourceMeal, duplicatedMealOrder);
+        return {
+          ...day,
+          meals: [...day.meals, duplicatedMeal],
+        };
+      }),
+    );
+
+    this.pendingDeleteMealOrder.set(null);
+    this.selectedMealOrder.set(duplicatedMealOrder);
+  }
+
+  moveScheduleRow(mealOrder: number, direction: 'up' | 'down') {
+    const selectedDay = this.selectedDay();
+    if (!selectedDay) return;
+
+    const orderedMeals = [...selectedDay.meals].sort((current, next) => current.mealOrder - next.mealOrder);
+    const currentIndex = orderedMeals.findIndex((meal) => meal.mealOrder === mealOrder);
+    if (currentIndex === -1) return;
+
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= orderedMeals.length) return;
+
+    const reorderedMeals = [...orderedMeals];
+    [reorderedMeals[currentIndex], reorderedMeals[targetIndex]] = [
+      reorderedMeals[targetIndex],
+      reorderedMeals[currentIndex],
+    ];
+
+    this.days.update((days) =>
+      days.map((day) =>
+        day.id === selectedDay.id
+          ? {
+              ...day,
+              meals: this.reindexMeals(reorderedMeals),
+            }
+          : day,
+      ),
+    );
+
+    this.pendingDeleteMealOrder.set(null);
+    this.selectedMealOrder.set(targetIndex + 1);
+  }
+
   addScheduleRow() {
-    const nextOrder = Math.max(...this.mealOrders(), 0) + 1;
+    const selectedDay = this.selectedDay();
+    if (!selectedDay) return;
+
+    const nextOrder = Math.max(...selectedDay.meals.map((meal) => meal.mealOrder), 0) + 1;
     const template = this.defaultMealTemplate(nextOrder);
 
     this.days.update((days) =>
       days.map((day) => ({
         ...day,
-        meals: [
-          ...day.meals,
-          this.newMeal(day.id, nextOrder, template.name, template.time, template.targetCalories),
-        ],
+        meals:
+          day.id === selectedDay.id
+            ? [
+                ...day.meals,
+                this.newMeal(day.id, nextOrder, template.name, template.time, template.targetCalories),
+              ]
+            : day.meals,
       })),
     );
+    this.pendingDeleteMealOrder.set(null);
+    this.selectedMealOrder.set(nextOrder);
+  }
+
+  requestRemoveScheduleRow(mealOrder: number) {
+    this.pendingDeleteMealOrder.set(mealOrder);
+  }
+
+  cancelRemoveScheduleRow() {
+    this.pendingDeleteMealOrder.set(null);
+  }
+
+  confirmRemoveScheduleRow() {
+    const mealOrder = this.pendingDeleteMealOrder();
+    if (mealOrder === null) return;
+
+    this.removeScheduleRow(mealOrder);
+    this.pendingDeleteMealOrder.set(null);
   }
 
   removeScheduleRow(mealOrder: number) {
+    const selectedDay = this.selectedDay();
+    if (!selectedDay) return;
+
     this.days.update((days) =>
       days.map((day) => ({
         ...day,
-        meals: day.meals.filter((meal) => meal.mealOrder !== mealOrder),
+        meals:
+          day.id === selectedDay.id
+            ? this.reindexMeals(day.meals.filter((meal) => meal.mealOrder !== mealOrder))
+            : day.meals,
       })),
     );
+    this.pendingDeleteMealOrder.set(null);
+    this.ensureSelectedMealOrder();
   }
 
   updateScheduleRow(mealOrder: number, field: 'name' | 'time', event: Event) {
+    const selectedDay = this.selectedDay();
+    if (!selectedDay) return;
+
     const input = event.target as HTMLInputElement;
     const value = input.value;
 
     this.days.update((days) =>
       days.map((day) => ({
         ...day,
-        meals: day.meals.map((meal) =>
-          meal.mealOrder === mealOrder
-            ? {
-                ...meal,
-                name: field === 'name' ? value : meal.name,
-                notes: field === 'time' ? value : meal.notes,
-              }
-            : meal,
-        ),
+        meals:
+          day.id === selectedDay.id
+            ? day.meals.map((meal) =>
+                meal.mealOrder === mealOrder
+                  ? {
+                      ...meal,
+                      name: field === 'name' ? value : meal.name,
+                      notes: field === 'time' ? value : meal.notes,
+                    }
+                  : meal,
+              )
+            : day.meals,
       })),
     );
   }
@@ -216,6 +430,7 @@ export class DietEditorPage implements OnInit {
         ),
       })),
     );
+    this.selectedMealOrder.set(mealOrder);
   }
 
   removeItem(dayId: string, mealOrder: number, itemId: string) {
@@ -275,10 +490,6 @@ export class DietEditorPage implements OnInit {
     );
   }
 
-  mealFor(day: DietPlanDay, row: ScheduleRow) {
-    return this.mealForOrder(day, row.mealOrder);
-  }
-
   mealCalories(meal: DietMeal) {
     return meal.items.reduce((total, item) => total + (Number(item.calories) || 0), 0);
   }
@@ -287,9 +498,57 @@ export class DietEditorPage implements OnInit {
     return day.meals.reduce((total, meal) => total + this.mealCalories(meal), 0);
   }
 
+  dayTargetCalories(day: DietPlanDay) {
+    return day.meals.reduce((total, meal) => total + (Number(meal.targetCalories) || 0), 0);
+  }
+
+  dayStatus(day: DietPlanDay): DayStatus {
+    const allMealsEmpty = day.meals.every((meal) => meal.items.length === 0 && this.mealCalories(meal) === 0);
+    if (allMealsEmpty) return 'empty';
+
+    const allMealsComplete = day.meals.every((meal) => meal.items.length > 0);
+    return allMealsComplete ? 'complete' : 'in-progress';
+  }
+
+  dayStatusLabel(status: DayStatus) {
+    if (status === 'empty') return 'Vacio';
+    if (status === 'complete') return 'Completo';
+    return 'En progreso';
+  }
+
+  mealStatus(meal: DietMeal): MealStatus {
+    const consumedCalories = this.mealCalories(meal);
+    const targetCalories = Number(meal.targetCalories) || 0;
+
+    if (consumedCalories === 0) return 'pending';
+    if (Math.abs(consumedCalories - targetCalories) <= 50) return 'on-target';
+    return consumedCalories > targetCalories ? 'above-target' : 'below-target';
+  }
+
+  mealStatusLabel(status: MealStatus) {
+    if (status === 'pending') return 'Pendiente';
+    if (status === 'on-target') return 'En meta';
+    if (status === 'above-target') return 'Sobre meta';
+    return 'Bajo meta';
+  }
+
+  differenceLabel(value: number) {
+    if (value > 0) return `+${value} kcal`;
+    return `${value} kcal`;
+  }
+
+  progressPercentage(consumedCalories: number, targetCalories: number) {
+    if (!targetCalories) return 0;
+    return Math.max(0, Math.min(100, Math.round((consumedCalories / targetCalories) * 100)));
+  }
+
   formatDate(value?: string | null) {
     if (!value) return 'Sin fecha';
     return new Intl.DateTimeFormat('es-BO', { day: '2-digit', month: 'short' }).format(new Date(value));
+  }
+
+  trackByItemId(_: number, item: DietMealItem) {
+    return item.id;
   }
 
   private async save(status: 'ACTIVE' | 'DRAFT') {
@@ -304,11 +563,12 @@ export class DietEditorPage implements OnInit {
       await this.dietsService.updateStructure(diet.id, days);
       const updated = await this.dietsService.update(diet.id, {
         status,
-        mealsPerDay: this.activeMealsCount(),
+        mealsPerDay: this.weeklyMealsPerDayMax(),
         estimatedCalories: this.averageDailyCalories(),
       });
       this.diet.set(updated);
-      this.days.set(this.normalizeWeek(updated.days, updated.mealsPerDay ?? this.activeMealsCount()));
+      this.days.set(this.normalizeWeek(updated.days));
+      this.resetSelection();
       this.successMessage.set(
         status === 'ACTIVE'
           ? 'Plan actualizado y marcado como activo.'
@@ -355,9 +615,8 @@ export class DietEditorPage implements OnInit {
     };
   }
 
-  private normalizeWeek(days: DietPlanDay[], mealsPerDay: number) {
+  private normalizeWeek(days: DietPlanDay[]) {
     const now = new Date().toISOString();
-    const mealOrders = this.normalizeMealOrders(days, mealsPerDay);
 
     return WEEK_DAYS.map((weekDay) => {
       const sourceDay = this.findSourceDay(days, weekDay);
@@ -371,33 +630,12 @@ export class DietEditorPage implements OnInit {
         dayOrder: weekDay.order,
         createdAt: sourceDay?.createdAt ?? now,
         updatedAt: sourceDay?.updatedAt ?? now,
-        meals: mealOrders.map((mealOrder) => {
-          const sourceMeal = sourceDay?.meals.find((meal) => meal.mealOrder === mealOrder);
-          const fallbackMeal = this.firstMealByOrder(days, mealOrder);
-          const template = this.defaultMealTemplate(mealOrder);
-
-          return sourceMeal
-            ? this.cloneMeal(sourceMeal)
-            : this.newMeal(
-                dayId,
-                mealOrder,
-                fallbackMeal?.name ?? template.name,
-                fallbackMeal?.notes ?? template.time,
-                fallbackMeal?.targetCalories ?? template.targetCalories,
-              );
-        }),
+        meals: (sourceDay?.meals ?? [])
+          .slice()
+          .sort((current, next) => current.mealOrder - next.mealOrder)
+          .map((meal) => this.cloneMeal(meal)),
       };
     });
-  }
-
-  private normalizeMealOrders(days: DietPlanDay[], mealsPerDay: number) {
-    const mealOrders = [...new Set(days.flatMap((day) => day.meals.map((meal) => meal.mealOrder)))].sort(
-      (current, next) => current - next,
-    );
-
-    if (mealOrders.length) return mealOrders;
-
-    return DEFAULT_MEALS.slice(0, Math.max(1, mealsPerDay)).map((_, index) => index + 1);
   }
 
   private findSourceDay(days: DietPlanDay[], weekDay: WeekDay) {
@@ -408,29 +646,32 @@ export class DietEditorPage implements OnInit {
     );
   }
 
-  private firstMealByOrder(days: DietPlanDay[], mealOrder: number) {
-    for (const day of days) {
-      const meal = day.meals.find((item) => item.mealOrder === mealOrder);
-      if (meal) return meal;
-    }
-
-    return null;
-  }
-
-  private mealOrders() {
-    return [...new Set(this.days().flatMap((day) => day.meals.map((meal) => meal.mealOrder)))].sort(
-      (current, next) => current - next,
-    );
-  }
-
-  private mealForOrder(day: DietPlanDay, mealOrder: number) {
-    return day.meals.find((meal) => meal.mealOrder === mealOrder) ?? null;
-  }
-
   private cloneMeal(meal: DietMeal) {
     return {
       ...meal,
       items: meal.items.map((item) => ({ ...item })),
+    };
+  }
+
+  private duplicateMeal(dietPlanDayId: string, meal: DietMeal, mealOrder: number): DietMeal {
+    const now = new Date().toISOString();
+    const duplicatedMealId = `temp-meal-${crypto.randomUUID()}`;
+
+    return {
+      ...meal,
+      id: duplicatedMealId,
+      dietPlanDayId,
+      mealOrder,
+      items: meal.items.map((item, index) => ({
+        ...item,
+        id: `temp-${crypto.randomUUID()}`,
+        dietMealId: duplicatedMealId,
+        itemOrder: index + 1,
+        createdAt: now,
+        updatedAt: now,
+      })),
+      createdAt: now,
+      updatedAt: now,
     };
   }
 
@@ -462,6 +703,38 @@ export class DietEditorPage implements OnInit {
       name: `Comida ${mealOrder}`,
       targetCalories: 0,
     };
+  }
+
+  private reindexMeals(meals: DietMeal[]) {
+    return meals.slice().map((meal, index) => ({
+        ...meal,
+        mealOrder: index + 1,
+      }));
+  }
+
+  private sortedDays() {
+    return [...this.days()].sort((current, next) => current.dayOrder - next.dayOrder);
+  }
+
+  private resetSelection() {
+    this.selectedDayOrder.set(this.sortedDays()[0]?.dayOrder ?? 1);
+    this.ensureSelectedMealOrder();
+  }
+
+  private ensureSelectedMealOrder() {
+    const currentMeals = this.selectedDay()?.meals
+      .map((meal) => meal.mealOrder)
+      .sort((current, next) => current - next) ?? [];
+
+    if (!currentMeals.length) {
+      this.selectedMealOrder.set(null);
+      return;
+    }
+
+    const currentOrder = this.selectedMealOrder();
+    if (currentOrder && currentMeals.includes(currentOrder)) return;
+
+    this.selectedMealOrder.set(currentMeals[0]);
   }
 
   private clearActionMessages() {

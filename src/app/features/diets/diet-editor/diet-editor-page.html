@@ -5,7 +5,7 @@
 } @else {
   <header class="diet-editor-header">
     <div>
-      <h1>Editor semanal de dieta · {{ patient()?.fullName }}</h1>
+      <h1>Editor semanal de dieta - {{ patient()?.fullName }}</h1>
       <p>Organiza horarios, dias y alimentos del plan actual dentro del expediente nutricional.</p>
     </div>
     <div class="diet-editor-actions">
@@ -36,180 +36,246 @@
     <div class="feedback-banner error">{{ actionError() }}</div>
   }
 
-  <section class="editor-filterbar weekly-filterbar">
-    <label>
-      <span>{{ diet()?.name }} · {{ diet()?.phase || 'Plan semanal' }}</span>
-    </label>
-    <span class="day-chip">{{ activeMealsCount() }} horarios</span>
-    <span class="day-chip">{{ activeItemsCount() }} alimentos</span>
-    <span class="version-chip">Version actual</span>
+  <section class="editor-overview">
+    <div>
+      <small>{{ diet()?.name }} &middot; {{ diet()?.phase || 'Plan semanal' }}</small>
+      <h2>Dieta semanal</h2>
+    </div>
+    <div class="editor-overview-chips">
+      <span class="overview-chip">{{ activeMealsCount() }} horarios del dia</span>
+      <span class="overview-chip">{{ activeItemsCount() }} alimentos del dia</span>
+      <span class="overview-chip version">Version actual</span>
+    </div>
   </section>
 
-  <section class="diet-editor-layout weekly-editor-layout">
-    <main class="editor-main-card weekly-editor-card">
-      <article class="current-plan-card">
-        <div>
-          <small>Plan actual</small>
-          <h2>{{ diet()?.name }}</h2>
-          <p>Objetivo: {{ diet()?.objective }}. Edita la semana completa con alimentos manuales por horario.</p>
+  <section class="week-strip" aria-label="Selector semanal">
+    @for (card of weeklyDayCards(); track card.dayId) {
+      <button
+        class="week-day-card"
+        type="button"
+        [class.selected]="card.isSelected"
+        [class.complete]="card.status === 'complete'"
+        [class.progress]="card.status === 'in-progress'"
+        [class.empty]="card.status === 'empty'"
+        (click)="selectDay(card.dayOrder)"
+      >
+        <div class="week-day-head">
+          <strong>{{ card.shortLabel }}</strong>
+          <span>{{ card.statusLabel }}</span>
         </div>
-        <div>
-          <span><strong>{{ averageDailyCalories() }} kcal</strong><small>Promedio diario</small></span>
-          <span><strong>{{ weeklyCalories() }} kcal</strong><small>Total semanal</small></span>
+        <div class="week-day-kcal">{{ card.consumedCalories }} kcal</div>
+        <div class="week-day-progress">
+          <span [style.width.%]="card.progress"></span>
         </div>
-      </article>
+      </button>
+    }
+  </section>
 
-      <div class="weekly-table-shell">
-        <table class="weekly-diet-table">
-          <thead>
-            <tr>
-              <th class="schedule-column">Hora / comida</th>
-              @for (day of days(); track day.id) {
-                <th>
-                  <strong>{{ day.dayLabel }}</strong>
-                  <small>{{ dayCalories(day) }} kcal</small>
-                </th>
-              }
-            </tr>
-          </thead>
-          <tbody>
-            @for (row of scheduleRows(); track row.mealOrder) {
-              <tr>
-                <th class="schedule-column meal-schedule-cell">
-                  <label>
-                    <span>Hora</span>
-                    <input
-                      type="time"
-                      [value]="row.time"
-                      (input)="updateScheduleRow(row.mealOrder, 'time', $event)"
-                    />
-                  </label>
-                  <label>
-                    <span>Comida</span>
-                    <input
-                      [value]="row.name"
-                      (input)="updateScheduleRow(row.mealOrder, 'name', $event)"
-                    />
-                  </label>
-                  <small>{{ row.itemCount }} alimentos · {{ row.totalCalories }} kcal</small>
+  <section class="weekly-editor-shell">
+    <aside class="schedule-sidebar">
+      <div class="sidebar-header">
+        <h2>Horarios</h2>
+        <p>Administra solo los horarios de {{ selectedDay()?.dayLabel?.toLowerCase() }}.</p>
+      </div>
+
+      <div class="schedule-list">
+        @for (meal of selectedMeals(); track meal.id) {
+          <button
+            class="schedule-item"
+            type="button"
+            [class.active]="selectedMealOrder() === meal.mealOrder"
+            (click)="selectMeal(meal.mealOrder)"
+          >
+            <div class="schedule-item-top">
+              <strong>{{ meal.time }}</strong>
+              <span>{{ meal.statusLabel }}</span>
+            </div>
+            <div class="schedule-item-name">{{ meal.name }}</div>
+            <small>{{ meal.targetCalories }} kcal meta &middot; {{ meal.itemCount }} alimentos</small>
+          </button>
+        } @empty {
+          <div class="empty-weekly-cell">Este dia no tiene horarios todavia.</div>
+        }
+      </div>
+
+      <button class="btn secondary sidebar-add" type="button" [disabled]="saving()" (click)="addScheduleRow()">
+        <svg lucidePlus size="17"></svg>
+        Agregar horario al dia
+      </button>
+    </aside>
+
+    <main class="editor-main-card">
+      @if (selectedDay(); as activeDay) {
+        <section class="selected-day-header">
+          <div>
+            <h2>{{ activeDay.dayLabel }}</h2>
+            <p>Edita alimentos por horario. Las metas se actualizan por comida.</p>
+          </div>
+          <div class="day-kpis">
+            <article>
+              <small>Meta diaria</small>
+              <strong>{{ dailyTargetCalories() }} kcal</strong>
+            </article>
+            <article>
+              <small>Consumido</small>
+              <strong>{{ dailyConsumedCalories() }} kcal</strong>
+            </article>
+            <article [class.positive]="dailyDifferenceCalories() > 0" [class.negative]="dailyDifferenceCalories() < 0">
+              <small>Diferencia</small>
+              <strong>{{ differenceLabel(dailyDifferenceCalories()) }}</strong>
+            </article>
+          </div>
+        </section>
+
+        <section class="meal-grid">
+          @for (meal of selectedMeals(); track meal.id) {
+            <article class="meal-card" [class.focused]="selectedMealOrder() === meal.mealOrder">
+              <header class="meal-card-header">
+                <div>
+                  <h3>{{ meal.name }} &middot; {{ meal.time }}</h3>
+                  <small>{{ meal.targetCalories }} kcal meta</small>
+                </div>
+                <div class="meal-card-tools">
+                  <span
+                    class="meal-status-pill"
+                    [class.pending]="meal.status === 'pending'"
+                    [class.on-target]="meal.status === 'on-target'"
+                    [class.above-target]="meal.status === 'above-target'"
+                    [class.below-target]="meal.status === 'below-target'"
+                  >
+                    {{ meal.statusLabel }}
+                  </span>
+                  <button class="mini-add" type="button" (click)="addItem(activeDay.id, meal.mealOrder)">
+                    <svg lucidePlus size="14"></svg>
+                    Agregar
+                  </button>
+                </div>
+              </header>
+
+              <div class="meal-card-total">{{ meal.consumedCalories }} kcal</div>
+
+              <div class="meal-card-meta">
+                <label>
+                  <span>Meta kcal</span>
+                  <input
+                    type="number"
+                    min="0"
+                    [value]="meal.targetCalories"
+                    (input)="updateMealCalories(activeDay.id, meal.mealOrder, $event)"
+                  />
+                </label>
+                <label>
+                  <span>Hora</span>
+                  <input type="time" [value]="meal.time" (input)="updateScheduleRow(meal.mealOrder, 'time', $event)" />
+                </label>
+                <label class="meal-name-field">
+                  <span>Comida</span>
+                  <input [value]="meal.name" (input)="updateScheduleRow(meal.mealOrder, 'name', $event)" />
+                </label>
+                <div class="schedule-actions-inline">
+                  <button
+                    class="icon-btn schedule-action-btn"
+                    type="button"
+                    (click)="moveScheduleRow(meal.mealOrder, 'up')"
+                    [disabled]="saving() || meal.mealOrder === 1"
+                    aria-label="Subir horario"
+                    title="Subir horario"
+                  >
+                    <svg lucideArrowUp size="14"></svg>
+                  </button>
+                  <button
+                    class="icon-btn schedule-action-btn"
+                    type="button"
+                    (click)="moveScheduleRow(meal.mealOrder, 'down')"
+                    [disabled]="saving() || meal.mealOrder === activeMealsCount()"
+                    aria-label="Bajar horario"
+                    title="Bajar horario"
+                  >
+                    <svg lucideArrowDown size="14"></svg>
+                  </button>
+                  <button
+                    class="icon-btn schedule-action-btn"
+                    type="button"
+                    (click)="duplicateScheduleRow(meal.mealOrder)"
+                    [disabled]="saving()"
+                    aria-label="Duplicar horario"
+                    title="Duplicar horario"
+                  >
+                    <svg lucideCopy size="14"></svg>
+                  </button>
                   <button
                     class="mini-remove-row"
                     type="button"
-                    (click)="removeScheduleRow(row.mealOrder)"
-                    [disabled]="saving() || scheduleRows().length <= 1"
+                    (click)="requestRemoveScheduleRow(meal.mealOrder)"
+                    [disabled]="saving() || activeMealsCount() <= 1"
                   >
                     <svg lucideTrash2 size="14"></svg>
                     Quitar horario
                   </button>
-                </th>
+                </div>
+              </div>
 
-                @for (day of days(); track day.id) {
-                  <td>
-                    @if (mealFor(day, row); as meal) {
-                      <article class="weekly-meal-cell">
-                        <header>
-                          <label>
-                            <span>Meta kcal</span>
-                            <input
-                              type="number"
-                              min="0"
-                              [value]="mealCalories(meal) || meal.targetCalories || 0"
-                              (input)="updateMealCalories(day.id, row.mealOrder, $event)"
-                            />
-                          </label>
-                          <button class="mini-add" type="button" (click)="addItem(day.id, row.mealOrder)">
-                            <svg lucidePlus size="14"></svg>
-                            Agregar
-                          </button>
-                        </header>
+              @if (pendingDeleteMealOrder() === meal.mealOrder) {
+                <div class="delete-confirmation">
+                  <p>Se eliminara este horario solo de {{ activeDay.dayLabel.toLowerCase() }}.</p>
+                  <div class="delete-confirmation-actions">
+                    <button class="btn secondary" type="button" (click)="cancelRemoveScheduleRow()" [disabled]="saving()">
+                      Cancelar
+                    </button>
+                    <button class="btn danger" type="button" (click)="confirmRemoveScheduleRow()" [disabled]="saving()">
+                      Confirmar
+                    </button>
+                  </div>
+                </div>
+              }
 
-                        <div class="weekly-meal-items">
-                          @for (item of meal.items; track item.id) {
-                            <div class="weekly-meal-item">
-                              <input
-                                class="food-name"
-                                [value]="item.name"
-                                (input)="updateItem(day.id, row.mealOrder, item.id, 'name', $event)"
-                                aria-label="Alimento"
-                              />
-                              <input
-                                [value]="item.portion || ''"
-                                (input)="updateItem(day.id, row.mealOrder, item.id, 'portion', $event)"
-                                aria-label="Porcion"
-                              />
-                              <input
-                                type="number"
-                                min="0"
-                                [value]="item.calories || 0"
-                                (input)="updateItem(day.id, row.mealOrder, item.id, 'calories', $event)"
-                                aria-label="Calorias"
-                              />
-                              <button
-                                class="icon-btn ghost danger-icon"
-                                type="button"
-                                (click)="removeItem(day.id, row.mealOrder, item.id)"
-                                aria-label="Quitar alimento"
-                              >
-                                <svg lucideTrash2 size="14"></svg>
-                              </button>
-                            </div>
-                          } @empty {
-                            <p class="empty-weekly-cell">Sin alimentos.</p>
-                          }
-                        </div>
-                      </article>
-                    }
-                  </td>
+              <div class="weekly-meal-items">
+                @for (item of meal.items; track item.id) {
+                  <div class="weekly-meal-item">
+                    <input
+                      class="food-name"
+                      [value]="item.name"
+                      (input)="updateItem(activeDay.id, meal.mealOrder, item.id, 'name', $event)"
+                      aria-label="Alimento"
+                    />
+                    <input
+                      [value]="item.portion || ''"
+                      (input)="updateItem(activeDay.id, meal.mealOrder, item.id, 'portion', $event)"
+                      aria-label="Porcion"
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      [value]="item.calories || 0"
+                      (input)="updateItem(activeDay.id, meal.mealOrder, item.id, 'calories', $event)"
+                      aria-label="Calorias"
+                    />
+                    <button
+                      class="icon-btn ghost danger-icon"
+                      type="button"
+                      (click)="removeItem(activeDay.id, meal.mealOrder, item.id)"
+                      aria-label="Quitar alimento"
+                    >
+                      <svg lucideTrash2 size="14"></svg>
+                    </button>
+                  </div>
+                } @empty {
+                  <p class="empty-weekly-cell">Sin alimentos todavia.</p>
                 }
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="8">
-                  <div class="empty-meal">Agrega un horario para comenzar la planificacion semanal.</div>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+              </div>
+            </article>
+          } @empty {
+            <div class="empty-meal">Agrega un horario para comenzar la planificacion semanal.</div>
+          }
+        </section>
+
+        <article class="next-adjustment-card inline">
+          <h2>Proximo ajuste</h2>
+          <p>{{ nextAdjustmentMessage() }}</p>
+        </article>
+      } @else {
+        <div class="empty-meal">Selecciona un dia de la semana para comenzar.</div>
+      }
     </main>
-
-    <aside class="editor-side">
-      <article>
-        <h2>Resumen semanal</h2>
-        <p>Distribucion principal del plan alimenticio.</p>
-        <div><span>Horarios activos</span><strong>{{ activeMealsCount() }}</strong></div>
-        <div><span>Alimentos registrados</span><strong>{{ activeItemsCount() }}</strong></div>
-        <div><span>Total semanal</span><strong>{{ weeklyCalories() }} kcal</strong></div>
-      </article>
-
-      <article>
-        <h2>Totales por dia</h2>
-        @for (day of days(); track day.id) {
-          <div><span>{{ day.dayLabel }}</span><strong>{{ dayCalories(day) }} kcal</strong></div>
-        }
-      </article>
-
-      <article class="plan-actions">
-        <h2>Acciones del plan</h2>
-        <button type="button" (click)="saveDraft()" [disabled]="saving()">
-          <svg lucideFileText size="16"></svg>
-          {{ saveMode() === 'draft' ? 'Guardando...' : 'Guardar borrador' }}
-        </button>
-        <button type="button" class="primary" (click)="updatePlan()" [disabled]="saving()">
-          <svg lucideCheck size="16"></svg>
-          {{ saveMode() === 'update' ? 'Actualizando...' : 'Actualizar plan' }}
-        </button>
-        <button type="button" disabled title="Disponible en una proxima fase documental.">
-          <svg lucideDownload size="16"></svg>
-          Exportar PDF
-        </button>
-        <button type="button" disabled title="Disponible en una proxima fase documental.">
-          <svg lucideBookOpen size="16"></svg>
-          Abrir biblioteca
-        </button>
-        <p class="prepared-note">Disponible en una proxima fase documental.</p>
-      </article>
-    </aside>
   </section>
 }
