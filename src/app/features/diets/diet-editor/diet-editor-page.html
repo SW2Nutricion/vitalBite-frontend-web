@@ -13,6 +13,10 @@
         <svg lucidePlus size="17"></svg>
         Agregar horario
       </button>
+      <button class="btn secondary" type="button" [disabled]="saving() || generatingPdf()" (click)="exportPdf()">
+        <svg lucideFileText size="17"></svg>
+        {{ generatingPdf() ? 'Generando...' : 'Generar PDF' }}
+      </button>
       <button class="btn" type="button" [disabled]="saving()" (click)="updatePlan()">
         <svg lucideSave size="17"></svg>
         {{ saveMode() === 'update' ? 'Actualizando...' : 'Guardar cambios' }}
@@ -21,12 +25,11 @@
   </header>
 
   <nav class="patient-tabs">
-    <a [routerLink]="['/patients', patient()?.id]">Resumen</a>
-    <a routerLink="/appointments">Citas</a>
-    <a [routerLink]="['/patients', patient()?.id, 'measurements']">Medidas</a>
-    <span>Seguimiento</span>
-    <strong>Dietas</strong>
-    <span>Documentos</span>
+    <a [routerLink]="['/patients', patient()?.id]" [queryParams]="{ tab: 'Resumen' }">Resumen</a>
+    <a [routerLink]="['/patients', patient()?.id]" [queryParams]="{ tab: 'Citas' }">Citas</a>
+    <a [routerLink]="['/patients', patient()?.id]" [queryParams]="{ tab: 'Antropometría' }">Antropometría</a>
+    <a class="active" [routerLink]="['/patients', patient()?.id, 'diets']">Dietas</a>
+    <a [routerLink]="['/patients', patient()?.id]" [queryParams]="{ tab: 'Documentos' }">Documentos</a>
   </nav>
 
   @if (successMessage()) {

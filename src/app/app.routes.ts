@@ -33,6 +33,12 @@ export const routes: Routes = [
         canActivate: [permissionGuard(['dashboard:read'])],
       },
       {
+        path: 'dashboard/segmentations',
+        loadComponent: () =>
+          import('./features/segmentations/segmentations-page').then((m) => m.SegmentationsPage),
+        canActivate: [permissionGuard(['dashboard:read'])],
+      },
+      {
         path: 'patients',
         component: PatientsPage,
         canActivate: [permissionGuard(['patients:read'])],

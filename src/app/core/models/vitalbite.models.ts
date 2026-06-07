@@ -36,6 +36,14 @@ export interface User {
   updatedAt?: string;
 }
 
+export interface DocumentMetadata {
+  id: string;
+  nombreArchivo: string;
+  tipoDocumento: string;
+  createdAt: string;
+  s3Url?: string;
+}
+
 export interface Patient {
   id: string;
   tenantId: string;
@@ -55,6 +63,7 @@ export interface Patient {
   nutritionGoal?: string | null;
   createdAt: string;
   updatedAt: string;
+  documents?: DocumentMetadata[];
 }
 
 export interface Appointment {
@@ -455,4 +464,32 @@ export interface UpdateAnthropometryMeasurementInput {
   leftThighCm?: number | null;
   rightCalfCm?: number | null;
   leftCalfCm?: number | null;
+}
+
+export interface ClusterInfo {
+  cluster_id: number;
+  label: string;
+  total_pacientes: number;
+  porcentaje: number;
+  feature_dominante: string;
+  caracteristicas: Record<string, number>;
+}
+
+export interface PatientClusterPoint {
+  patient_id: string;
+  cluster_id: number;
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface PatientSegmentation {
+  id: string;
+  kClusters: number;
+  totalPatients: number;
+  silhouetteScore?: number | null;
+  clusters: ClusterInfo[];
+  pcaPoints: PatientClusterPoint[];
+  varianceExplained: number[];
+  createdAt: string;
 }

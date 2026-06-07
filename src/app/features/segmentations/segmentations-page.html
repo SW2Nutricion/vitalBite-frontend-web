@@ -1,0 +1,146 @@
+<div class="segmentation-container">
+  <div class="header">
+    <div class="title-group">
+      <h1>Análisis de Grupos Clínicos</h1>
+      <p>Clasificación automática de pacientes según su perfil biométrico y nutricional.</p>
+    </div>
+    <div class="actions">
+      <button class="btn-analyze" (click)="analyze()" [disabled]="loading()">
+        <svg lucideActivity></svg>
+        @if (loading()) {
+          Analizando...
+        } @else {
+          Ejecutar Análisis
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="error-alert">
+      <svg lucideAlertTriangle></svg>
+      <div>
+        <h3>Error en el análisis</h3>
+        <p>{{ error() }}</p>
+      </div>
+    </div>
+  }
+
+  @if (segmentation()) {
+    <div class="dashboard-grid">
+      <div class="summary-card">
+        <h3 class="summary-title">Resumen de Segmentación</h3>
+        <div class="metrics-grid">
+          <div class="metric-item">
+            <p class="metric-label">Total Pacientes Analizados</p>
+            <p class="metric-value">{{ segmentation()!.totalPatients }}</p>
+          </div>
+          <div class="metric-item">
+            <p class="metric-label">Grupos Identificados</p>
+            <p class="metric-value highlight">{{ segmentation()!.kClusters }}</p>
+          </div>
+          <div class="metric-item">
+            <p class="metric-label">Fiabilidad del Análisis</p>
+            <p class="metric-value">{{ formatScore(segmentation()!.silhouetteScore) }}</p>
+          </div>
+          <div class="metric-item">
+            <p class="metric-label">Última actualización</p>
+            <p class="metric-value" style="font-size: 1.5rem;">{{ formatDate(segmentation()!.createdAt) }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="charts-section">
+        
+        <!-- Scatter Plot -->
+        <div class="chart-card clickable" (click)="openChart('pca')">
+          <h4>Visualización de Grupos (PCA)</h4>
+          <div class="chart-container" echarts [options]="scatterOptions()" (chartClick)="onChartClick($event)"></div>
+        </div>
+
+        <!-- Doughnut Chart -->
+        <div class="chart-card clickable" (click)="openChart('distribution')">
+          <h4>Distribución de Pacientes</h4>
+          <div class="chart-container" echarts [options]="doughnutOptions()"></div>
+        </div>
+
+      </div>
+
+      <!-- Clusters Grid -->
+      @for (cluster of segmentation()!.clusters; track cluster.cluster_id) {
+        <div class="cluster-card">
+          <div class="cluster-header">
+            <h4>{{ cluster.label }}</h4>
+            <span class="badge">
+              {{ cluster.porcentaje | number:'1.0-1' }}%
+            </span>
+          </div>
+          
+          <div class="patient-count">
+            <p class="count-label">Pacientes en este grupo</p>
+            <p class="count-value">{{ cluster.total_pacientes }} <span>pacientes</span></p>
+          </div>
+
+          <div class="features-list">
+            <p class="features-title">Características Promedio:</p>
+            <dl>
+              @for (item of cluster.caracteristicas | keyvalue; track item.key) {
+                <div class="feature-item">
+                  <dt>{{ item.key }}</dt>
+                  <dd>
+                    @if (item.key === 'Actividad Física') {
+                      {{ item.value | number:'1.1-1' }}
+                    } @else if (item.key.includes('%')) {
+                      {{ item.value | number:'1.1-1' }}%
+                    } @else {
+                      {{ item.value | number:'1.1-1' }}
+                    }
+                  </dd>
+                </div>
+              }
+            </dl>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (!loading() && !error()) {
+    <div class="empty-state">
+      <svg lucideUsers></svg>
+      <h3>No hay análisis disponibles</h3>
+      <p>
+        Inicia un nuevo análisis para descubrir cómo se agrupan tus pacientes según sus características clínicas y nutricionales.
+      </p>
+      <button class="btn-analyze" (click)="analyze()">
+        Ejecutar primer análisis
+      </button>
+    </div>
+  }
+
+  <!-- Modal Pop-up -->
+  @if (expandedChart()) {
+    <div class="chart-modal-overlay" (click)="closeChart()">
+      <div class="chart-modal-content" (click)="$event.stopPropagation()">
+        <button class="btn-close" (click)="closeChart()">
+          <svg lucideX></svg>
+        </button>
+        
+        <h3 class="modal-title">
+          @if (expandedChart() === 'pca') {
+            Visualización Detallada de Grupos (PCA)
+          } @else {
+            Distribución Poblacional Detallada
+          }
+        </h3>
+        
+        <div class="modal-chart-container">
+          @if (expandedChart() === 'pca') {
+            <div echarts [options]="scatterOptions()" class="modal-echart" (chartClick)="onChartClick($event)"></div>
+          } @else {
+            <div echarts [options]="doughnutOptions()" class="modal-echart"></div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

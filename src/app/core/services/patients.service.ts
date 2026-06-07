@@ -21,6 +21,13 @@ const PATIENT_FIELDS = `
   nutritionGoal
   createdAt
   updatedAt
+  documents {
+    id
+    nombreArchivo
+    tipoDocumento
+    createdAt
+    s3Url
+  }
 `;
 
 @Injectable({ providedIn: 'root' })

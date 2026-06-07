@@ -186,6 +186,18 @@ export class DietsService {
     return data.duplicateDietPlanDay;
   }
 
+  async generatePdf(id: string) {
+    const data = await this.graphql.mutate<{ generateDietPdf: string }>(
+      `
+        mutation GenerateDietPdf($id: ID!) {
+          generateDietPdf(id: $id)
+        }
+      `,
+      { id },
+    );
+    return data.generateDietPdf;
+  }
+
   private clean<T extends object>(value: T): Record<string, unknown> {
     return Object.fromEntries(
       Object.entries(value).filter(([, field]) => field !== '' && field !== null && field !== undefined),

@@ -7,6 +7,7 @@ import {
   LucidePlus,
   LucideSave,
   LucideTrash2,
+  LucideFileText,
 } from '@lucide/angular';
 import {
   DietMeal,
@@ -104,6 +105,7 @@ const DEFAULT_MEALS: MealTemplate[] = [
     LucidePlus,
     LucideSave,
     LucideTrash2,
+    LucideFileText,
   ],
   templateUrl: './diet-editor-page.html',
   styleUrl: './diet-editor-page.scss',
@@ -114,6 +116,7 @@ export class DietEditorPage implements OnInit {
   readonly days = signal<DietPlanDay[]>([]);
   readonly loading = signal(true);
   readonly saving = signal(false);
+  readonly generatingPdf = signal(false);
   readonly saveMode = signal<SaveMode>('');
   readonly error = signal('');
   readonly successMessage = signal('');
@@ -262,6 +265,25 @@ export class DietEditorPage implements OnInit {
 
   async updatePlan() {
     await this.save('ACTIVE');
+  }
+
+  async exportPdf() {
+    const diet = this.diet();
+    if (!diet) return;
+    
+    this.generatingPdf.set(true);
+    this.error.set('');
+    this.successMessage.set('');
+    
+    try {
+      const s3Url = await this.dietsService.generatePdf(diet.id);
+      window.open(s3Url, '_blank');
+      this.successMessage.set('PDF generado correctamente. Se abrio en una nueva pestana.');
+    } catch (e) {
+      this.actionError.set('Ocurrio un error al generar el PDF.');
+    } finally {
+      this.generatingPdf.set(false);
+    }
   }
 
   selectDay(dayOrder: number) {

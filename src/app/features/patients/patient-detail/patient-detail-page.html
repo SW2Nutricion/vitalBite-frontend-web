@@ -40,6 +40,33 @@
       [patientId]="patient()?.id ?? null"
       [patient]="patient()"
     ></app-anthropometry-panel>
+  } @else if (activeTab() === 'Documentos') {
+    <section class="documents-panel">
+      <h2>Documentos de {{ patient()?.firstName }}</h2>
+      <p>Reportes generados en PDF</p>
+      
+      @if (patient()?.documents?.length === 0 || !patient()?.documents) {
+        <div class="empty-state">
+          <svg lucideFileText size="48" color="#ccc"></svg>
+          <p>No hay documentos registrados para este paciente.</p>
+        </div>
+      } @else {
+        <div class="documents-grid">
+          @for (doc of patient()?.documents; track doc.id) {
+            <div class="document-card">
+              <div class="doc-icon">
+                <svg lucideFile size="24"></svg>
+              </div>
+              <div class="doc-info">
+                <strong>{{ doc.nombreArchivo }}</strong>
+                <span>{{ doc.tipoDocumento }} - {{ doc.createdAt | date:'shortDate' }}</span>
+              </div>
+              <a class="btn primary small" [href]="doc.s3Url" target="_blank">Ver</a>
+            </div>
+          }
+        </div>
+      }
+    </section>
   } @else {
     <section class="patient-detail-layout">
       <div class="patient-detail-main">

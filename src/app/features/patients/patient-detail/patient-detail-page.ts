@@ -1,10 +1,13 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   LucideActivity,
   LucideAlertTriangle,
   LucideArrowLeft,
   LucidePencil,
+  LucideFile,
+  LucideFileText
 } from '@lucide/angular';
 import { AppointmentsCalendarComponent } from '../../appointments/appointments-calendar/appointments-calendar.component';
 import { AnthropometryPanelComponent } from '../anthropometry/anthropometry-panel.component';
@@ -27,6 +30,9 @@ import { RiskPredictionsService } from '../../../core/services/risk-predictions.
     LucideAlertTriangle,
     LucideArrowLeft,
     LucidePencil,
+    LucideFile,
+    LucideFileText,
+    DatePipe,
     AppointmentsCalendarComponent,
     AnthropometryPanelComponent,
   ],
