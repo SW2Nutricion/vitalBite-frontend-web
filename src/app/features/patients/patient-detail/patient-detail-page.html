@@ -69,6 +69,65 @@
             </div>
           </div>
 
+          <section class="risk-prediction-card">
+            <div class="risk-prediction-head">
+              <div>
+                <h3>Riesgo nutricional IA</h3>
+                <p>Prediccion automatica con los ultimos datos clinicos</p>
+              </div>
+              <span
+                class="risk-status-pill"
+                [class.high]="riskLevelClass() === 'high'"
+                [class.medium]="riskLevelClass() === 'medium'"
+                [class.low]="riskLevelClass() === 'low'"
+                [class.neutral]="riskLevelClass() === 'neutral'"
+              >
+                @if (riskLoading()) {
+                  Calculando
+                } @else if (riskPrediction()?.status === 'UNAVAILABLE') {
+                  IA no disponible
+                } @else if (riskPrediction()?.status === 'INSUFFICIENT_DATA') {
+                  Datos insuficientes
+                } @else {
+                  {{ riskPrediction()?.nivelRiesgo || 'N/D' }}
+                }
+              </span>
+            </div>
+
+            @if (riskLoading()) {
+              <div class="risk-empty-state">
+                <svg lucideActivity size="18"></svg>
+                Analizando expediente...
+              </div>
+            } @else if (riskPrediction()?.status === 'UNAVAILABLE') {
+              <div class="risk-empty-state">
+                <svg lucideAlertTriangle size="18"></svg>
+                El servicio de IA no esta disponible en este momento.
+              </div>
+            } @else if (riskPrediction()?.status === 'INSUFFICIENT_DATA') {
+              <div class="risk-empty-state">
+                <svg lucideAlertTriangle size="18"></svg>
+                Registra fecha de nacimiento, peso y talla para calcular el riesgo.
+              </div>
+            } @else if (riskPrediction()) {
+              <div class="risk-prediction-grid">
+                <div>
+                  <small>Probabilidad</small>
+                  <strong>{{ riskProbabilityLabel() }}</strong>
+                  <span>Actualizado {{ riskUpdatedLabel() }}</span>
+                </div>
+                <div>
+                  <small>Factores criticos</small>
+                  <strong>{{ riskPrediction()?.factoresCriticos?.[0] || 'Perfil clinico general' }}</strong>
+                  <span>{{ (riskPrediction()?.factoresCriticos?.length || 0) }} factores detectados</span>
+                </div>
+              </div>
+              <p class="risk-recommendation">
+                {{ riskPrediction()?.recomendacion || 'Sin recomendacion disponible.' }}
+              </p>
+            }
+          </section>
+
           <section class="clinical-note-card">
             <h3>Notas clinicas</h3>
             <p>{{ patient()?.clinicalNotes || 'Sin notas clinicas registradas.' }}</p>

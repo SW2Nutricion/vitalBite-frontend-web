@@ -1,20 +1,30 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
+  LucideActivity,
+  LucideAlertTriangle,
   LucideArrowLeft,
   LucidePencil,
 } from '@lucide/angular';
 import { AppointmentsCalendarComponent } from '../../appointments/appointments-calendar/appointments-calendar.component';
 import { AnthropometryPanelComponent } from '../anthropometry/anthropometry-panel.component';
-import { Appointment, BodyMeasurement, Patient } from '../../../core/models/vitalbite.models';
+import {
+  Appointment,
+  BodyMeasurement,
+  Patient,
+  PatientRiskPrediction,
+} from '../../../core/models/vitalbite.models';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import { BodyMeasurementsService } from '../../../core/services/body-measurements.service';
 import { PatientsService } from '../../../core/services/patients.service';
+import { RiskPredictionsService } from '../../../core/services/risk-predictions.service';
 
 @Component({
   selector: 'app-patient-detail-page',
   imports: [
     RouterLink,
+    LucideActivity,
+    LucideAlertTriangle,
     LucideArrowLeft,
     LucidePencil,
     AppointmentsCalendarComponent,
@@ -26,6 +36,8 @@ export class PatientDetailPage implements OnInit {
   readonly patient = signal<Patient | null>(null);
   readonly appointments = signal<Appointment[]>([]);
   readonly measurements = signal<BodyMeasurement[]>([]);
+  readonly riskPrediction = signal<PatientRiskPrediction | null>(null);
+  readonly riskLoading = signal(false);
   readonly loading = signal(true);
   readonly error = signal('');
   readonly tabs = ['Resumen', 'Citas', 'Antropometría', 'Dietas', 'Documentos'];
@@ -50,6 +62,7 @@ export class PatientDetailPage implements OnInit {
     private readonly patientsService: PatientsService,
     private readonly appointmentsService: AppointmentsService,
     private readonly measurementsService: BodyMeasurementsService,
+    private readonly riskPredictionsService: RiskPredictionsService,
   ) {}
 
   async ngOnInit() {
@@ -71,6 +84,7 @@ export class PatientDetailPage implements OnInit {
       this.patient.set(patient);
       this.appointments.set(appointments);
       this.measurements.set(measurements);
+      void this.loadRiskPrediction(id);
     } catch {
       this.error.set('No se pudo cargar el expediente del paciente.');
     } finally {
@@ -136,6 +150,25 @@ export class PatientDetailPage implements OnInit {
     return this.latestMeasurement() ? this.compactDate(this.latestMeasurement()!.measuredAt) : 'Pendiente';
   }
 
+  riskLevelClass() {
+    const level = this.riskPrediction()?.nivelRiesgo?.toLowerCase();
+    if (level === 'alto') return 'high';
+    if (level === 'medio') return 'medium';
+    if (level === 'bajo') return 'low';
+    return 'neutral';
+  }
+
+  riskProbabilityLabel() {
+    const probability = this.riskPrediction()?.probabilidad;
+    if (probability === null || probability === undefined) return 'N/D';
+    return `${Math.round(probability * 100)}%`;
+  }
+
+  riskUpdatedLabel() {
+    const createdAt = this.riskPrediction()?.createdAt;
+    return createdAt ? this.compactDate(createdAt) : 'Sin registro';
+  }
+
   async setActiveTab(tab: string) {
     if (tab === 'Dietas' && this.patient()?.id) {
       await this.router.navigate(['/patients', this.patient()!.id, 'diets']);
@@ -163,5 +196,22 @@ export class PatientDetailPage implements OnInit {
       year: 'numeric',
       timeZone: 'UTC',
     }).format(date);
+  }
+
+  private async loadRiskPrediction(patientId: string) {
+    this.riskLoading.set(true);
+    this.riskPrediction.set(null);
+
+    try {
+      const prediction = await this.riskPredictionsService.byPatient(patientId);
+      this.riskPrediction.set(prediction);
+    } catch {
+      this.riskPrediction.set({
+        status: 'UNAVAILABLE',
+        factoresCriticos: [],
+      });
+    } finally {
+      this.riskLoading.set(false);
+    }
   }
 }

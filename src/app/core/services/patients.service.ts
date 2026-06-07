@@ -13,6 +13,9 @@ const PATIENT_FIELDS = `
   phone
   birthDate
   gender
+  activityLevel
+  dietQualityScore
+  comorbiditiesCount
   status
   clinicalNotes
   nutritionGoal

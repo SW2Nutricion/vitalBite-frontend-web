@@ -2121,7 +2121,8 @@ button:disabled,
 }
 
 .clinical-note-card h3,
-.activity-card h3 {
+.activity-card h3,
+.risk-prediction-card h3 {
   margin: 0 0 10px;
   color: var(--green-950);
   font-size: 15px;
@@ -2131,6 +2132,104 @@ button:disabled,
   margin: 0;
   color: #55705a;
   line-height: 1.5;
+}
+
+.risk-prediction-card {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fbfaf5;
+}
+
+.risk-prediction-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.risk-prediction-head p,
+.risk-prediction-grid small,
+.risk-prediction-grid span,
+.risk-empty-state {
+  color: var(--muted);
+}
+
+.risk-prediction-head p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.risk-status-pill {
+  min-width: 118px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 12px;
+  background: #eef2f0;
+  color: #52615a;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.risk-status-pill.high {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.risk-status-pill.medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.risk-status-pill.low {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.risk-prediction-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.risk-prediction-grid div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px;
+  border-radius: 10px;
+  background: white;
+  border: 1px solid var(--line);
+}
+
+.risk-prediction-grid strong {
+  color: var(--green-950);
+}
+
+.risk-recommendation {
+  margin: 0;
+  color: #55705a;
+  line-height: 1.5;
+}
+
+.risk-empty-state {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  background: white;
+  border: 1px dashed var(--line);
+  font-size: 13px;
 }
 
 .activity-card div {
@@ -2307,7 +2406,8 @@ button:disabled,
   }
 
   .patients-kpis,
-  .summary-mini-grid {
+  .summary-mini-grid,
+  .risk-prediction-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -2344,6 +2444,7 @@ button:disabled,
   .patient-form-grid,
   .patient-modal-summary,
   .summary-mini-grid,
+  .risk-prediction-grid,
   .patients-filterbar,
   .appointments-filterbar,
   .appointments-day-grid.week,

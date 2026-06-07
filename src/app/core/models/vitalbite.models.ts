@@ -9,6 +9,11 @@ export type AppointmentStatus =
   | 'NO_SHOW';
 export type AppointmentMode = 'IN_PERSON' | 'VIRTUAL';
 export type DietPlanStatus = 'ACTIVE' | 'DRAFT' | 'NEEDS_ADJUSTMENT';
+export type PatientRiskPredictionStatus =
+  | 'SUCCESS'
+  | 'REUSED'
+  | 'INSUFFICIENT_DATA'
+  | 'UNAVAILABLE';
 
 export interface Tenant {
   id: string;
@@ -42,6 +47,9 @@ export interface Patient {
   phone?: string | null;
   birthDate?: string | null;
   gender?: Gender | null;
+  activityLevel?: number | null;
+  dietQualityScore?: number | null;
+  comorbiditiesCount?: number | null;
   status: PatientStatus;
   clinicalNotes?: string | null;
   nutritionGoal?: string | null;
@@ -96,6 +104,18 @@ export interface BodyComposition {
   metabolicAge?: number | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface PatientRiskPrediction {
+  status: PatientRiskPredictionStatus;
+  nivelRiesgo?: string | null;
+  probabilidad?: number | null;
+  probabilidades?: Record<string, number> | null;
+  factoresCriticos: string[];
+  recomendacion?: string | null;
+  createdAt?: string | null;
+  sourceMeasurementId?: string | null;
+  sourceCompositionId?: string | null;
 }
 
 export interface AnthropometryMeasurement {
@@ -359,6 +379,9 @@ export interface CreatePatientInput {
   phone?: string | null;
   birthDate?: string | null;
   gender?: Gender | null;
+  activityLevel?: number | null;
+  dietQualityScore?: number | null;
+  comorbiditiesCount?: number | null;
   nutritionGoal?: string | null;
   clinicalNotes?: string | null;
   status?: PatientStatus | null;
