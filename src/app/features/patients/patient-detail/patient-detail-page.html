@@ -58,10 +58,15 @@
                 <svg lucideFile size="24"></svg>
               </div>
               <div class="doc-info">
-                <strong>{{ doc.nombreArchivo }}</strong>
-                <span>{{ doc.tipoDocumento }} - {{ doc.createdAt | date:'shortDate' }}</span>
+                <strong>{{ doc.tipoDocumento === 'DIETA_PDF' ? 'Plan Nutricional' : 'Documento Médico' }}</strong>
+                <span>Generado el {{ doc.createdAt | date:'mediumDate' }}</span>
               </div>
-              <a class="btn primary small" [href]="doc.s3Url" target="_blank">Ver</a>
+              <div class="doc-actions">
+                <a class="btn" [href]="doc.s3Url" target="_blank" style="padding: 8px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; background: var(--green-700); color: white; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                  <svg lucideDownload size="16"></svg>
+                  Descargar
+                </a>
+              </div>
             </div>
           }
         </div>

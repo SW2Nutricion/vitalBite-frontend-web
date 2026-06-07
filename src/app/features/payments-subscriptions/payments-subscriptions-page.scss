@@ -299,6 +299,52 @@
   color: var(--muted);
 }
 
+.pay-btn {
+  background: linear-gradient(135deg, var(--green-700), var(--green-950)) !important;
+}
+
+.payment-result-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 18px 22px;
+  border-radius: 12px;
+  border: 1px solid var(--green-200);
+  background: linear-gradient(135deg, #edf7ed, #f5faf3);
+  animation: slideDown 0.35s ease;
+}
+
+.payment-result-banner strong {
+  color: var(--green-950);
+  font-size: 16px;
+}
+
+.payment-result-banner p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.payment-result-banner code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .warning-text {
   color: #9a6a10;
 }

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AUTH_TOKEN_STORAGE_KEY, GraphqlService } from '../graphql/graphql.service';
 import { homeRouteFor } from '../guards/role-routing';
 import { Tenant, User } from '../models/vitalbite.models';
+import { PaymentsService } from './payments.service';
 
 const CURRENT_CONTEXT = `
   query CurrentContext {
@@ -88,16 +89,21 @@ export class SessionService {
   readonly user = signal<User | null>(null);
   readonly tenant = signal<Tenant | null>(null);
   readonly loading = signal(false);
+  readonly subscriptionStatus = signal<
+    'unknown' | 'active' | 'inactive' | 'error'
+  >('unknown');
 
   constructor(
     private readonly graphql: GraphqlService,
     private readonly router: Router,
+    private readonly paymentsService: PaymentsService,
   ) {}
 
   async loadContext() {
     const data = await this.graphql.query<{ me: User; currentTenant: Tenant }>(CURRENT_CONTEXT);
     this.user.set(data.me);
     this.tenant.set(data.currentTenant);
+    this.subscriptionStatus.set('unknown');
     return data;
   }
 
@@ -131,7 +137,8 @@ export class SessionService {
       localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, data.login.accessToken);
       this.user.set(data.login.user);
       this.tenant.set(data.login.tenant);
-      await this.router.navigateByUrl(homeRouteFor(data.login.user.roleCode));
+      this.subscriptionStatus.set('unknown');
+      await this.routeAfterAuthentication(data.login.user.roleCode);
     } finally {
       this.loading.set(false);
     }
@@ -147,10 +154,53 @@ export class SessionService {
       localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, data.register.accessToken);
       this.user.set(data.register.user);
       this.tenant.set(data.register.tenant);
-      await this.router.navigateByUrl(homeRouteFor(data.register.user.roleCode));
+      this.subscriptionStatus.set('unknown');
+      await this.routeAfterAuthentication(data.register.user.roleCode);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  async ensureSubscriptionState() {
+    if (this.user()?.roleCode?.trim().toUpperCase() === 'SUPER_ADMIN') {
+      this.subscriptionStatus.set('active');
+      return 'active' as const;
+    }
+
+    const current = this.subscriptionStatus();
+    if (current !== 'unknown') {
+      return current;
+    }
+
+    return this.refreshSubscriptionState();
+  }
+
+  async refreshSubscriptionState() {
+    if (this.user()?.roleCode?.trim().toUpperCase() === 'SUPER_ADMIN') {
+      this.subscriptionStatus.set('active');
+      return 'active' as const;
+    }
+
+    try {
+      const subscription = await this.paymentsService.currentSubscription();
+      this.subscriptionStatus.set(subscription ? 'active' : 'inactive');
+    } catch {
+      this.subscriptionStatus.set('error');
+    }
+
+    return this.subscriptionStatus();
+  }
+
+  async routeAfterAuthentication(roleCode?: string | null) {
+    if (roleCode?.trim().toUpperCase() === 'SUPER_ADMIN') {
+      await this.router.navigateByUrl(homeRouteFor(roleCode));
+      return;
+    }
+
+    const subscriptionState = await this.refreshSubscriptionState();
+    await this.router.navigateByUrl(
+      subscriptionState === 'active' ? homeRouteFor(roleCode) : '/activate-plan',
+    );
   }
 
   logout() {
@@ -163,5 +213,6 @@ export class SessionService {
     void this.graphql.clearStore();
     this.user.set(null);
     this.tenant.set(null);
+    this.subscriptionStatus.set('unknown');
   }
 }

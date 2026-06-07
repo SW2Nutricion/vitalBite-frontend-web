@@ -12,6 +12,10 @@
       <svg lucideBadgeDollarSign size="18"></svg>
       Solicitar cambio
     </button>
+    <button class="btn pay-btn" type="button" (click)="openPayModal()" [disabled]="paying()">
+      <svg lucideCreditCard size="18"></svg>
+      Renovar Suscripción
+    </button>
   </div>
 </header>
 
@@ -36,6 +40,17 @@
     </div>
   </section>
 
+  @if (lastPaymentResult()) {
+    <section class="payment-result-banner">
+      <div>
+        <strong>Pago procesado con éxito</strong>
+        <p>Hash de auditoría: <code>{{ lastPaymentResult()!.transactionHash.substring(0, 24) }}...</code></p>
+        <p>Próxima revisión: {{ dateLabel(lastPaymentResult()!.nextReviewAt) }}</p>
+      </div>
+      <a class="btn secondary" [href]="lastPaymentResult()!.invoiceUrl" target="_blank">Descargar factura</a>
+    </section>
+  }
+
   <section class="payments-grid">
     <article class="panel plan-overview">
       <div class="panel-header">
@@ -58,7 +73,7 @@
       <div class="panel-header">
         <div>
           <h2>Estado administrativo</h2>
-          <p>La gestion de cobros reales se activara en una fase posterior.</p>
+          <p>Las renovaciones y la auditoria financiera se gestionan desde el servicio de pagos.</p>
         </div>
       </div>
       <div class="admin-summary">
@@ -198,6 +213,31 @@
         </button>
       </div>
     </form>
+  </app-modal>
+
+  <app-modal
+    [open]="payModalOpen()"
+    title="Renovar suscripción"
+    eyebrow="Facturación"
+    (close)="payModalOpen.set(false)"
+  >
+    <div class="plan-change-form">
+      <div class="current-plan-box">
+        <small>Plan a renovar</small>
+        <strong>{{ subscription()?.planName || 'Sin plan' }}</strong>
+        <span>{{ currentPlan() ? priceLabel(currentPlan()!) : '$0/mes' }}</span>
+      </div>
+      <p style="margin: 16px 0; color: var(--muted);">Al confirmar, se procesará el pago y se generará una factura PDF con registro de auditoría inmutable.</p>
+      @if (payError()) {
+        <p class="form-message danger-text">{{ payError() }}</p>
+      }
+      <div class="actions">
+        <button class="btn secondary" type="button" (click)="payModalOpen.set(false)">Cancelar</button>
+        <button class="btn pay-btn" type="button" (click)="confirmPayment()" [disabled]="paying()">
+          {{ paying() ? 'Procesando...' : 'Confirmar pago' }}
+        </button>
+      </div>
+    </div>
   </app-modal>
 
 }

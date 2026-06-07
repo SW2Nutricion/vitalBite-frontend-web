@@ -1,0 +1,95 @@
+<main class="activate-shell">
+  <section class="activate-hero">
+    <a class="brand" routerLink="/">
+      <span><svg lucideHeartPulse size="26"></svg></span>
+      <strong>VitalBite</strong>
+    </a>
+
+    <div class="hero-copy">
+      <p class="eyebrow">Activacion comercial</p>
+      <h1>Activa tu espacio de atencion</h1>
+      <p>
+        {{ clinicName() }} ya tiene su cuenta creada. Solo falta elegir el plan y confirmar el
+        medio de pago para habilitar el panel completo.
+      </p>
+    </div>
+
+    <article class="hero-note">
+      <div>
+        <svg lucideShieldCheck size="18"></svg>
+        <strong>Compra segura en modo prueba</strong>
+      </div>
+      <p>
+        Puedes usar tarjetas de prueba de Stripe para validar el flujo completo sin realizar un
+        cobro real.
+      </p>
+    </article>
+  </section>
+
+  <section class="activate-panel">
+    <header class="activate-header">
+      <div>
+        <h2>Planes disponibles</h2>
+        <p>Elige la modalidad que mejor se adapte a tu operacion actual.</p>
+      </div>
+      <button class="btn secondary" type="button" (click)="load()" [disabled]="loading()">
+        <svg lucideRefreshCw size="18"></svg>
+        Actualizar
+      </button>
+    </header>
+
+    @if (loading()) {
+      <section class="state-card">Cargando opciones comerciales...</section>
+    } @else {
+      @if (statusMessage()) {
+        <section class="state-card success">{{ statusMessage() }}</section>
+      }
+
+      @if (error()) {
+        <section class="state-card error">{{ error() }}</section>
+      }
+
+      <div class="plan-grid">
+        @for (plan of plans(); track plan.code) {
+          <article class="plan-card">
+            <div class="plan-head">
+              <span class="plan-icon">
+                @if (planIcon(plan) === 'clinic') {
+                  <svg lucideBuilding2 size="22"></svg>
+                } @else {
+                  <svg lucideUserRoundCheck size="22"></svg>
+                }
+              </span>
+              <span class="badge">{{ plan.audience }}</span>
+            </div>
+
+            <h3>{{ plan.name }}</h3>
+            <p>{{ plan.description }}</p>
+            <strong class="price">{{ priceLabel(plan) }}</strong>
+
+            <ul>
+              @for (item of plan.included; track item) {
+                <li><svg lucideBadgeCheck size="16"></svg> {{ item }}</li>
+              }
+            </ul>
+
+            <button
+              class="btn pay"
+              type="button"
+              (click)="startCheckout(plan.code)"
+              [disabled]="processingPlanCode() !== null"
+            >
+              <svg lucideCreditCard size="18"></svg>
+              {{
+                processingPlanCode() === plan.code
+                  ? 'Abriendo pago...'
+                  : 'Elegir este plan'
+              }}
+              <svg lucideArrowRight size="18"></svg>
+            </button>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</main>

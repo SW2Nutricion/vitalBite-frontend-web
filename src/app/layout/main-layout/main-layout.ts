@@ -58,11 +58,19 @@ export class MainLayout implements OnInit {
     if (!this.session.user()) {
       void this.session.loadContext().catch(() => undefined);
     }
+
+    if (!this.isSuperAdmin()) {
+      void this.session.ensureSubscriptionState().catch(() => undefined);
+    }
   }
 
   visibleNavItems() {
     if (this.isSuperAdmin()) {
       return this.navItems.filter((item) => item.superAdminOnly || item.auditOnly);
+    }
+
+    if (this.session.subscriptionStatus() !== 'active') {
+      return [];
     }
 
     return this.navItems.filter(

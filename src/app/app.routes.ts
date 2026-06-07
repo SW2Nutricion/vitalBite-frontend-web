@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { MainLayout } from './layout/main-layout/main-layout';
+import { ActivatePlanPage } from './features/activate-plan/activate-plan-page';
 import { LandingPage } from './features/landing/landing-page';
 import { LoginPage } from './features/auth/login/login-page';
 import { RegisterPage } from './features/auth/register/register-page';
@@ -11,7 +12,13 @@ import { PaymentsSubscriptionsPage } from './features/payments-subscriptions/pay
 import { SuperAdminTenantsPage } from './features/super-admin-tenants/super-admin-tenants-page';
 import { UsersPage } from './features/users/users-page';
 import { AuditLogPage } from './features/audit-log/audit-log-page';
-import { authGuard, permissionGuard, publicOnlyGuard, roleGuard } from './core/guards/auth.guard';
+import {
+  authGuard,
+  permissionGuard,
+  publicOnlyGuard,
+  roleGuard,
+  subscriptionGuard,
+} from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', component: LandingPage },
@@ -28,43 +35,48 @@ export const routes: Routes = [
         canActivate: [permissionGuard(['super-admin:read'])],
       },
       {
+        path: 'activate-plan',
+        component: ActivatePlanPage,
+        canActivate: [subscriptionGuard('inactive')],
+      },
+      {
         path: 'dashboard',
         component: DashboardPage,
-        canActivate: [permissionGuard(['dashboard:read'])],
+        canActivate: [subscriptionGuard('active'), permissionGuard(['dashboard:read'])],
       },
       {
         path: 'dashboard/segmentations',
         loadComponent: () =>
           import('./features/segmentations/segmentations-page').then((m) => m.SegmentationsPage),
-        canActivate: [permissionGuard(['dashboard:read'])],
+        canActivate: [subscriptionGuard('active'), permissionGuard(['dashboard:read'])],
       },
       {
         path: 'patients',
         component: PatientsPage,
-        canActivate: [permissionGuard(['patients:read'])],
+        canActivate: [subscriptionGuard('active'), permissionGuard(['patients:read'])],
       },
       {
         path: 'patients/:id/measurements',
         component: BodyMeasurementsPage,
-        canActivate: [permissionGuard(['body-measurements:read'])],
+        canActivate: [subscriptionGuard('active'), permissionGuard(['body-measurements:read'])],
       },
       {
         path: 'appointments',
         loadComponent: () =>
           import('./features/appointments/appointments-page').then((m) => m.AppointmentsPage),
-        canActivate: [permissionGuard(['appointments:read'])],
+        canActivate: [subscriptionGuard('active'), permissionGuard(['appointments:read'])],
       },
       {
         path: 'patients/:id/diets',
         loadComponent: () =>
           import('./features/diets/diets-page/diets-page').then((m) => m.DietsPage),
-        canActivate: [permissionGuard(['diets:read'])],
+        canActivate: [subscriptionGuard('active'), permissionGuard(['diets:read'])],
       },
       {
         path: 'patients/:id/diets/:dietId/edit',
         loadComponent: () =>
           import('./features/diets/diet-editor/diet-editor-page').then((m) => m.DietEditorPage),
-        canActivate: [permissionGuard(['diets:read'])],
+        canActivate: [subscriptionGuard('active'), permissionGuard(['diets:read'])],
       },
       {
         path: 'patients/:id',
@@ -72,22 +84,22 @@ export const routes: Routes = [
           import('./features/patients/patient-detail/patient-detail-page').then(
             (m) => m.PatientDetailPage,
           ),
-        canActivate: [permissionGuard(['patients:read'])],
+        canActivate: [subscriptionGuard('active'), permissionGuard(['patients:read'])],
       },
       {
         path: 'payments-subscriptions',
         component: PaymentsSubscriptionsPage,
-        canActivate: [permissionGuard(['payments:read'])],
+        canActivate: [subscriptionGuard('active'), permissionGuard(['payments:read'])],
       },
       {
         path: 'users',
         component: UsersPage,
-        canActivate: [permissionGuard(['users:read'])],
+        canActivate: [subscriptionGuard('active'), permissionGuard(['users:read'])],
       },
       {
         path: 'audit-log',
         component: AuditLogPage,
-        canActivate: [permissionGuard(['audit-log:read'])],
+        canActivate: [subscriptionGuard('active'), permissionGuard(['audit-log:read'])],
       },
     ],
   },

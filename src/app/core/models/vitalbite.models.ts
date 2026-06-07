@@ -313,6 +313,26 @@ export interface ResolvePlanChangeInput {
   comment?: string | null;
 }
 
+export interface PaymentResponse {
+  transactionHash: string;
+  invoiceUrl: string;
+  nextReviewAt: string;
+}
+
+export interface InitialCheckoutSession {
+  sessionId: string;
+  checkoutUrl: string;
+}
+
+export interface CheckoutSessionStatus {
+  sessionId: string;
+  status: string;
+  planCode?: string | null;
+  invoiceUrl?: string | null;
+  activatedAt?: string | null;
+  nextReviewAt?: string | null;
+}
+
 export interface SuperAdminTenantOverview {
   tenant: Tenant;
   subscription?: TenantSubscription | null;

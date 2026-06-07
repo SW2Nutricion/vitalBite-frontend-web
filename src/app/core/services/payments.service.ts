@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { GraphqlService } from '../graphql/graphql.service';
 import {
+  CheckoutSessionStatus,
+  InitialCheckoutSession,
+  PaymentResponse,
   PlanChangeRequest,
   RequestPlanChangeInput,
   ResolvePlanChangeInput,
@@ -66,7 +69,7 @@ export class PaymentsService {
   }
 
   async currentSubscription() {
-    const data = await this.graphql.query<{ currentTenantSubscription: TenantSubscription }>(`
+    const data = await this.graphql.query<{ currentTenantSubscription: TenantSubscription | null }>(`
       query CurrentTenantSubscription {
         currentTenantSubscription {
           ${SUBSCRIPTION_FIELDS}
@@ -75,6 +78,46 @@ export class PaymentsService {
     `);
 
     return data.currentTenantSubscription;
+  }
+
+  async createInitialCheckoutSession(input: { planCode: string }) {
+    const data = await this.graphql.mutate<{
+      createInitialCheckoutSession: InitialCheckoutSession;
+    }>(
+      `
+        mutation CreateInitialCheckoutSession($input: CreateInitialCheckoutSessionInput!) {
+          createInitialCheckoutSession(input: $input) {
+            sessionId
+            checkoutUrl
+          }
+        }
+      `,
+      { input: this.clean(input) },
+    );
+
+    return data.createInitialCheckoutSession;
+  }
+
+  async checkoutSessionStatus(sessionId: string) {
+    const data = await this.graphql.query<{
+      checkoutSessionStatus: CheckoutSessionStatus;
+    }>(
+      `
+        query CheckoutSessionStatus($sessionId: String!) {
+          checkoutSessionStatus(sessionId: $sessionId) {
+            sessionId
+            status
+            planCode
+            invoiceUrl
+            activatedAt
+            nextReviewAt
+          }
+        }
+      `,
+      { sessionId },
+    );
+
+    return data.checkoutSessionStatus;
   }
 
   async planChangeRequests() {
@@ -138,5 +181,18 @@ export class PaymentsService {
     return Object.fromEntries(
       Object.entries(value).filter(([, field]) => field !== '' && field !== null && field !== undefined),
     );
+  }
+
+  async paySubscription(): Promise<PaymentResponse> {
+    const data = await this.graphql.mutate<{ paySubscription: PaymentResponse }>(`
+      mutation PaySubscription {
+        paySubscription {
+          transactionHash
+          invoiceUrl
+          nextReviewAt
+        }
+      }
+    `);
+    return data.paySubscription;
   }
 }

@@ -11,6 +11,7 @@ import {
 import {
   PlanLimit,
   PlanChangeRequest,
+  PaymentResponse,
   SubscriptionPlan,
   TenantSubscription,
 } from '../../core/models/vitalbite.models';
@@ -49,6 +50,10 @@ export class PaymentsSubscriptionsPage implements OnInit {
   readonly selectedRequest = signal<PlanChangeRequest | null>(null);
   readonly resolveAction = signal<'approve' | 'reject'>('approve');
   readonly resolveError = signal('');
+  readonly payModalOpen = signal(false);
+  readonly paying = signal(false);
+  readonly payError = signal('');
+  readonly lastPaymentResult = signal<PaymentResponse | null>(null);
 
   readonly form = this.fb.nonNullable.group({
     planCode: ['', Validators.required],
@@ -230,5 +235,26 @@ export class PaymentsSubscriptionsPage implements OnInit {
     }
 
     return this.resolveAction() === 'approve' ? 'Aprobar solicitud' : 'Rechazar solicitud';
+  }
+
+  openPayModal() {
+    this.payError.set('');
+    this.payModalOpen.set(true);
+  }
+
+  async confirmPayment() {
+    this.paying.set(true);
+    this.payError.set('');
+
+    try {
+      const result = await this.paymentsService.paySubscription();
+      this.lastPaymentResult.set(result);
+      this.payModalOpen.set(false);
+      await this.load();
+    } catch {
+      this.payError.set('No se pudo procesar el pago. Intenta nuevamente.');
+    } finally {
+      this.paying.set(false);
+    }
   }
 }

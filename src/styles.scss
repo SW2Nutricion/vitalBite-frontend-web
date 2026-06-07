@@ -225,31 +225,38 @@ button:disabled,
   gap: 12px;
   align-items: center;
   margin-bottom: 16px;
-  p.chart-tooltip {
-  background: var(--surface-card);
-  border: 1px solid var(--border-color);
-  padding: var(--spacing-sm);
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  font-family: var(--font-family);
-  font-size: 0.875rem;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+p.chart-tooltip {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  font-family: Inter, sans-serif;
+  font-size: 13px;
 }
 
 /* Documentos */
 .documents-panel {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-md);
+  gap: 14px;
+  margin-top: 14px;
 
   h2 {
-    font-size: 1.25rem;
-    color: var(--text-color);
+    font-size: 18px;
+    color: var(--green-950);
     margin: 0;
   }
 
   p {
-    color: var(--text-secondary);
+    color: var(--muted);
     margin: 0;
   }
 }
@@ -257,23 +264,23 @@ button:disabled,
 .documents-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--spacing-md);
+  gap: 14px;
 }
 
 .document-card {
-  background: var(--surface-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-md);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: 14px;
   transition: all 0.2s ease;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    border-color: var(--primary-color);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+    border-color: var(--green-700);
   }
 
   .doc-icon {
@@ -282,9 +289,9 @@ button:disabled,
     justify-content: center;
     width: 48px;
     height: 48px;
-    border-radius: var(--radius-md);
-    background: rgba(43, 191, 160, 0.1);
-    color: var(--primary-color);
+    border-radius: 10px;
+    background: var(--green-100);
+    color: var(--green-700);
   }
 
   .doc-info {
@@ -294,24 +301,25 @@ button:disabled,
     overflow: hidden;
 
     strong {
-      font-weight: 600;
-      color: var(--text-color);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--green-950);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      margin-bottom: 2px;
     }
 
     span {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
+      font-size: 13px;
+      color: var(--muted);
     }
   }
-}
-  padding: 12px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
+
+  .doc-actions {
+    display: flex;
+    align-items: center;
+  }
 }
 
 .appointments-search-field {

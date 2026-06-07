@@ -7,7 +7,8 @@ import {
   LucideArrowLeft,
   LucidePencil,
   LucideFile,
-  LucideFileText
+  LucideFileText,
+  LucideDownload
 } from '@lucide/angular';
 import { AppointmentsCalendarComponent } from '../../appointments/appointments-calendar/appointments-calendar.component';
 import { AnthropometryPanelComponent } from '../anthropometry/anthropometry-panel.component';
@@ -32,6 +33,7 @@ import { RiskPredictionsService } from '../../../core/services/risk-predictions.
     LucidePencil,
     LucideFile,
     LucideFileText,
+    LucideDownload,
     DatePipe,
     AppointmentsCalendarComponent,
     AnthropometryPanelComponent,
