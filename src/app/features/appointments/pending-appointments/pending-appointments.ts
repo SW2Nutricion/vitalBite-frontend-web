@@ -28,7 +28,6 @@ import { LucideCheckCircle, LucideXCircle } from '@lucide/angular';
               <div class="flex justify-between items-start mb-4">
                 <div>
                   <h3 class="font-semibold text-gray-900 dark:text-white">{{ appt.patientFullName }}</h3>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">{{ appt.patient?.phone }}</p>
                 </div>
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500">
                   Pendiente
@@ -88,13 +87,10 @@ export class PendingAppointments implements OnInit {
     try {
       const response = await this.graphql.query<{ appointments: any[] }>(`
         query GetPendingAppointments {
-          appointments(filter: { status: "PENDING" }) {
+          appointments(filter: { status: PENDING }) {
             id
             patientFullName
             scheduledAt
-            patient {
-              phone
-            }
           }
         }
       `);
