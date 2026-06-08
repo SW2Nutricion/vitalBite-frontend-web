@@ -12,6 +12,7 @@ import {
   PlanLimit,
   PlanChangeRequest,
   PaymentResponse,
+  PaymentHistoryItem,
   SubscriptionPlan,
   TenantSubscription,
 } from '../../core/models/vitalbite.models';
@@ -40,6 +41,7 @@ export class PaymentsSubscriptionsPage implements OnInit {
   readonly plans = signal<SubscriptionPlan[]>([]);
   readonly subscription = signal<TenantSubscription | null>(null);
   readonly requests = signal<PlanChangeRequest[]>([]);
+  readonly history = signal<PaymentHistoryItem[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
   readonly modalOpen = signal(false);
@@ -90,10 +92,14 @@ export class PaymentsSubscriptionsPage implements OnInit {
         this.paymentsService.plans(),
         this.paymentsService.currentSubscription(),
       ]);
-      const requests = await this.paymentsService.planChangeRequests();
+      const [requests, history] = await Promise.all([
+        this.paymentsService.planChangeRequests(),
+        this.paymentsService.paymentHistory(),
+      ]);
       this.plans.set(plans);
       this.subscription.set(subscription);
       this.requests.set(requests);
+      this.history.set(history);
     } catch {
       this.error.set('No se pudo cargar la informacion de planes y suscripcion.');
     } finally {
@@ -255,6 +261,46 @@ export class PaymentsSubscriptionsPage implements OnInit {
       this.payError.set('No se pudo procesar el pago. Intenta nuevamente.');
     } finally {
       this.paying.set(false);
+    }
+  }
+
+  paymentStateLabel(item: PaymentHistoryItem) {
+    if (item.invoiceStatus === 'READY') {
+      return 'Factura disponible';
+    }
+    if (item.invoiceStatus === 'FAILED') {
+      return 'Factura pendiente';
+    }
+    return 'En proceso';
+  }
+
+  paymentBadgeClass(item: PaymentHistoryItem) {
+    return item.invoiceStatus === 'READY'
+      ? 'success'
+      : item.invoiceStatus === 'FAILED'
+        ? 'danger'
+        : 'warning';
+  }
+
+  paymentDate(item: PaymentHistoryItem) {
+    return this.dateLabel(item.createdAt);
+  }
+
+  async retryInvoice(item: PaymentHistoryItem) {
+    this.payError.set('');
+
+    try {
+      const updated = await this.paymentsService.retryInvoiceGeneration(item.recordId);
+      this.lastPaymentResult.set({
+        transactionHash: updated.transactionHash ?? item.transactionHash ?? '',
+        invoiceUrl: updated.invoiceUrl ?? null,
+        invoiceStatus: updated.invoiceStatus,
+        invoiceError: updated.invoiceError ?? null,
+        nextReviewAt: updated.nextReviewAt || item.nextReviewAt || new Date().toISOString(),
+      });
+      await this.load();
+    } catch {
+      this.payError.set('No se pudo regenerar la factura. Intenta nuevamente.');
     }
   }
 }

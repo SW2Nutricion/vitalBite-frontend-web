@@ -315,7 +315,9 @@ export interface ResolvePlanChangeInput {
 
 export interface PaymentResponse {
   transactionHash: string;
-  invoiceUrl: string;
+  invoiceUrl?: string | null;
+  invoiceStatus: string;
+  invoiceError?: string | null;
   nextReviewAt: string;
 }
 
@@ -328,9 +330,31 @@ export interface CheckoutSessionStatus {
   sessionId: string;
   status: string;
   planCode?: string | null;
+  transactionHash?: string | null;
+  invoiceStatus: string;
+  invoiceError?: string | null;
   invoiceUrl?: string | null;
   activatedAt?: string | null;
   nextReviewAt?: string | null;
+}
+
+export interface PaymentHistoryItem {
+  recordId: string;
+  tenantId: string;
+  kind: string;
+  planCode: string;
+  planName: string;
+  status: string;
+  amountUsd: number;
+  transactionHash?: string | null;
+  invoiceUrl?: string | null;
+  invoiceStatus: string;
+  invoiceError?: string | null;
+  createdAt: string;
+  activatedAt?: string | null;
+  nextReviewAt?: string | null;
+  checkoutSessionId?: string | null;
+  stripeSubscriptionId?: string | null;
 }
 
 export interface SuperAdminTenantOverview {

@@ -4,6 +4,7 @@ import {
   CheckoutSessionStatus,
   InitialCheckoutSession,
   PaymentResponse,
+  PaymentHistoryItem,
   PlanChangeRequest,
   RequestPlanChangeInput,
   ResolvePlanChangeInput,
@@ -37,6 +38,25 @@ const SUBSCRIPTION_FIELDS = `
     key
     value
   }
+`;
+
+const PAYMENT_HISTORY_FIELDS = `
+  recordId
+  tenantId
+  kind
+  planCode
+  planName
+  status
+  amountUsd
+  transactionHash
+  invoiceUrl
+  invoiceStatus
+  invoiceError
+  createdAt
+  activatedAt
+  nextReviewAt
+  checkoutSessionId
+  stripeSubscriptionId
 `;
 
 const PLAN_CHANGE_REQUEST_FIELDS = `
@@ -108,6 +128,9 @@ export class PaymentsService {
             sessionId
             status
             planCode
+            transactionHash
+            invoiceStatus
+            invoiceError
             invoiceUrl
             activatedAt
             nextReviewAt
@@ -118,6 +141,33 @@ export class PaymentsService {
     );
 
     return data.checkoutSessionStatus;
+  }
+
+  async paymentHistory() {
+    const data = await this.graphql.query<{ paymentHistory: PaymentHistoryItem[] }>(`
+      query PaymentHistory {
+        paymentHistory {
+          ${PAYMENT_HISTORY_FIELDS}
+        }
+      }
+    `);
+
+    return data.paymentHistory;
+  }
+
+  async retryInvoiceGeneration(recordId: string) {
+    const data = await this.graphql.mutate<{ retryInvoiceGeneration: PaymentHistoryItem }>(
+      `
+        mutation RetryInvoiceGeneration($recordId: String!) {
+          retryInvoiceGeneration(recordId: $recordId) {
+            ${PAYMENT_HISTORY_FIELDS}
+          }
+        }
+      `,
+      { recordId },
+    );
+
+    return data.retryInvoiceGeneration;
   }
 
   async planChangeRequests() {
@@ -189,6 +239,8 @@ export class PaymentsService {
         paySubscription {
           transactionHash
           invoiceUrl
+          invoiceStatus
+          invoiceError
           nextReviewAt
         }
       }

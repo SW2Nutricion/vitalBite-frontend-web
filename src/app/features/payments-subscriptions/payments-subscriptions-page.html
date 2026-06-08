@@ -45,9 +45,12 @@
       <div>
         <strong>Pago procesado con éxito</strong>
         <p>Hash de auditoría: <code>{{ lastPaymentResult()!.transactionHash.substring(0, 24) }}...</code></p>
+        <p>Estado de factura: {{ lastPaymentResult()!.invoiceStatus }}</p>
         <p>Próxima revisión: {{ dateLabel(lastPaymentResult()!.nextReviewAt) }}</p>
       </div>
-      <a class="btn secondary" [href]="lastPaymentResult()!.invoiceUrl" target="_blank">Descargar factura</a>
+      @if (lastPaymentResult()!.invoiceUrl) {
+        <a class="btn secondary" [href]="lastPaymentResult()!.invoiceUrl" target="_blank">Descargar factura</a>
+      }
     </section>
   }
 
@@ -157,6 +160,56 @@
               >
                 {{ requestStatusLabel(request.status) }}
               </span>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="requests-section">
+    <div class="plans-title">
+      <div>
+        <p class="eyebrow">Historial financiero</p>
+        <h2>Pagos y facturas</h2>
+      </div>
+      <span>{{ history().length }} registros</span>
+    </div>
+
+    @if (history().length === 0) {
+      <div class="empty-request-state">Todavia no hay movimientos financieros registrados.</div>
+    } @else {
+      <div class="history-list">
+        @for (item of history(); track item.recordId) {
+          <article class="history-item">
+            <div>
+              <strong>{{ item.planName }}</strong>
+              <small>{{ item.kind }} · {{ paymentDate(item) }}</small>
+              <p>
+                Hash:
+                <code>{{ item.transactionHash ? item.transactionHash.substring(0, 24) + '...' : 'Pendiente' }}</code>
+              </p>
+              @if (item.invoiceError) {
+                <p class="danger-text">Factura pendiente: {{ item.invoiceError }}</p>
+              }
+              @if (item.invoiceUrl) {
+                <p class="success-text">Factura disponible para descarga.</p>
+              }
+            </div>
+            <div class="request-actions">
+              <span
+                class="badge"
+                [class.warning]="paymentBadgeClass(item) === 'warning'"
+                [class.danger]="paymentBadgeClass(item) === 'danger'"
+                [class.success]="paymentBadgeClass(item) === 'success'"
+              >
+                {{ paymentStateLabel(item) }}
+              </span>
+              @if (item.invoiceUrl) {
+                <a class="btn compact secondary" [href]="item.invoiceUrl" target="_blank">Factura</a>
+              } @else if (item.invoiceStatus !== 'PENDING') {
+                <button class="btn compact" type="button" (click)="retryInvoice(item)">Reintentar factura</button>
+              }
             </div>
           </article>
         }

@@ -240,6 +240,34 @@
   gap: 10px;
 }
 
+.history-list {
+  display: grid;
+  gap: 10px;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fbfaf6;
+}
+
+.history-item strong {
+  color: var(--green-950);
+}
+
+.history-item small,
+.history-item p {
+  color: var(--muted);
+}
+
+.success-text {
+  color: #1f7a3d;
+}
+
 .request-list article {
   display: flex;
   justify-content: space-between;
@@ -347,6 +375,11 @@
 
 .warning-text {
   color: #9a6a10;
+}
+
+.badge.success {
+  background: #e7f7eb;
+  color: #1f7a3d;
 }
 
 .btn:disabled {
