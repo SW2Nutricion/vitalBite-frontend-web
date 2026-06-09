@@ -15,6 +15,19 @@ export type PatientRiskPredictionStatus =
   | 'INSUFFICIENT_DATA'
   | 'UNAVAILABLE';
 
+export interface Schedule {
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+}
+
+export interface SaveScheduleInput {
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+}
+
 export interface Tenant {
   id: string;
   name: string;

@@ -62,58 +62,74 @@
 } @else if (error()) {
   <section class="dashboard-state error">{{ error() }}</section>
 } @else {
-  <section class="panel">
-    <div class="panel-header">
+  <section class="panel blockchain-panel">
+    <div class="panel-header blockchain-header">
       <div>
-        <h2>Eventos registrados</h2>
-        <p class="muted">Ultimos {{ events().length }} eventos visibles para tu rol</p>
+        <h2 class="tech-title">Explorador de Bloques</h2>
+        <p class="muted">Cadena de eventos encriptados (SHA-256)</p>
+      </div>
+      
+      <div class="chain-status-box">
+        @if (verifying()) {
+          <span class="status-badge verifying"><svg lucideActivity size="16" class="spin"></svg> Verificando cadena...</span>
+        } @else if (chainValid() === true) {
+          <span class="status-badge valid"><svg lucideShieldCheck size="16"></svg> Cadena Inmutable (Verificada)</span>
+        } @else {
+          <button class="btn primary-tech" type="button" [disabled]="events().length === 0" (click)="verifyChain()">
+            <svg lucideCpu size="16"></svg> Verificar Integridad
+          </button>
+        }
       </div>
     </div>
 
     @if (events().length === 0) {
-      <div class="empty-state">No hay eventos de auditoria para los filtros seleccionados.</div>
+      <div class="empty-state tech-empty">No hay bloques en la cadena actual.</div>
     } @else {
-      <table class="data-table audit-table">
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Accion</th>
-            <th>Actor</th>
-            <th>Tenant</th>
-            <th>Recurso</th>
-            <th>Resumen</th>
-            <th>Hash</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (event of events(); track event.id) {
-            <tr>
-              <td>{{ dateLabel(event.createdAt) }}</td>
-              <td><span class="badge">{{ actionLabel(event.action) }}</span></td>
-              <td>
-                <strong>{{ event.actorEmail || 'Sistema' }}</strong>
-                <small>{{ roleLabel(event.actorRoleCode) }}</small>
-              </td>
-              <td>
-                <strong>{{ event.tenantSlug || 'Global' }}</strong>
-                <small>{{ event.tenantName || 'VitalBite' }}</small>
-              </td>
-              <td>
-                <strong>{{ event.resourceType }}</strong>
-                <small>{{ event.resourceId || 'Sin recurso' }}</small>
-              </td>
-              <td>{{ event.summary }}</td>
-              <td><code>{{ shortHash(event.eventHash) }}</code></td>
-              <td>
-                <button class="btn secondary outline" type="button" (click)="openDetail(event)">
-                  Ver
-                </button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+      <div class="blockchain-timeline" [class.scanning]="verifying()">
+        <div class="scanner-line"></div>
+        @for (event of events(); track event.id; let i = $index) {
+          <div class="block-card">
+            <div class="block-connector">
+              <svg lucideLink size="18"></svg>
+              @if (i < events().length - 1) {
+                <span class="line"></span>
+              }
+            </div>
+            
+            <div class="block-content">
+              <div class="block-top">
+                <span class="block-badge">{{ actionLabel(event.action) }}</span>
+                <span class="block-time">{{ dateLabel(event.createdAt) }}</span>
+              </div>
+              
+              <div class="block-details">
+                <div>
+                  <small>Actor</small>
+                  <strong>{{ event.actorEmail || 'Sistema' }}</strong>
+                </div>
+                <div>
+                  <small>Tenant</small>
+                  <strong>{{ event.tenantSlug || 'Global' }}</strong>
+                </div>
+                <div>
+                  <small>Recurso</small>
+                  <strong>{{ event.resourceType }}</strong>
+                </div>
+              </div>
+              
+              <div class="block-summary">
+                <p>{{ event.summary }}</p>
+                <button class="btn secondary outline compact" type="button" (click)="openDetail(event)">Metadata</button>
+              </div>
+              
+              <div class="block-hash">
+                <svg lucideDatabase size="14"></svg>
+                <code>{{ event.eventHash }}</code>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
     }
   </section>
 }

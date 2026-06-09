@@ -63,6 +63,20 @@ export class AppointmentsService {
     return data.appointmentsByPatient;
   }
 
+  async pending() {
+    const data = await this.graphql.query<{ appointments: Appointment[] }>(
+      `
+        query GetPendingAppointments {
+          appointments(filter: { status: PENDING }) {
+            ${APPOINTMENT_FIELDS}
+          }
+        }
+      `
+    );
+    return data.appointments;
+  }
+
+
   async create(input: CreateAppointmentInput) {
     const data = await this.graphql.mutate<{ createAppointment: Appointment }>(
       `

@@ -1,0 +1,105 @@
+<header class="page-header billing-header">
+  <div>
+    <h1 class="tech-title">Revenue & Pricing BI</h1>
+    <p class="muted">Métricas globales de ingresos e inteligencia de negocio.</p>
+  </div>
+  <button class="btn secondary" type="button" (click)="load()">Actualizar Métricas</button>
+</header>
+
+@if (loading()) {
+  <section class="dashboard-state">Calculando MRR y cargando proyecciones...</section>
+} @else if (error()) {
+  <section class="dashboard-state error">{{ error() }}</section>
+} @else {
+  <!-- KPIs Glassmorphism -->
+  <section class="kpi-grid">
+    <article class="kpi-card glass">
+      <div class="kpi-icon green"><svg lucideTrendingUp size="24"></svg></div>
+      <div class="kpi-info">
+        <small>MRR (Monthly Recurring Revenue)</small>
+        <strong>{{ formatCurrency(mrr()) }}</strong>
+      </div>
+    </article>
+
+    <article class="kpi-card glass">
+      <div class="kpi-icon blue"><svg lucideUsers size="24"></svg></div>
+      <div class="kpi-info">
+        <small>Clínicas Activas (Suscripciones)</small>
+        <strong>{{ activeSubscriptions() }}</strong>
+      </div>
+    </article>
+
+    <article class="kpi-card glass">
+      <div class="kpi-icon purple"><svg lucideWallet size="24"></svg></div>
+      <div class="kpi-info">
+        <small>ARPU (Promedio Mensual por Clínica)</small>
+        <strong>{{ formatCurrency(arpu()) }}</strong>
+      </div>
+    </article>
+  </section>
+
+  <!-- Gráficos ECharts -->
+  <section class="charts-grid">
+    <div class="chart-panel glass">
+      <h3>Proyección de Crecimiento (MRR)</h3>
+      <p class="muted">Simulación basada en crecimiento histórico del SaaS.</p>
+      <div echarts [options]="projectedGrowthChartOptions()" class="chart-container"></div>
+    </div>
+
+    <div class="chart-panel glass">
+      <h3>Distribución de Ingresos</h3>
+      <p class="muted">MRR generado según el tipo de plan activo.</p>
+      <div echarts [options]="planDistributionChartOptions()" class="chart-container"></div>
+    </div>
+  </section>
+
+  <!-- Configuración de Pricing -->
+  <section class="panel glass pricing-panel">
+    <div class="panel-header">
+      <div>
+        <h3>Pricing Manager (Planes de la Plataforma)</h3>
+        <p class="muted">Configura los límites y precios base de VitalBite.</p>
+      </div>
+      <button class="btn primary outline" type="button" disabled>
+        <svg lucideCreditCard size="16"></svg> Nuevo Plan
+      </button>
+    </div>
+
+    <div class="pricing-grid">
+      @for (plan of plans(); track plan.code) {
+        <div class="pricing-card">
+          <div class="pricing-header">
+            <h4>{{ plan.name }}</h4>
+            <span class="price">{{ formatCurrency(plan.priceUsd) }}<small>/mes</small></span>
+          </div>
+          
+          <div class="pricing-body">
+            <p>{{ plan.description }}</p>
+            
+            <div class="limits-box">
+              <small>Límites:</small>
+              <ul>
+                @for (limit of plan.limits; track limit.key) {
+                  <li><strong>{{ limit.key }}:</strong> {{ limit.value === '-1' ? 'Ilimitado' : limit.value }}</li>
+                }
+              </ul>
+            </div>
+            
+            <div class="features-box">
+              <small>Incluye:</small>
+              <ul>
+                @for (feature of plan.included; track feature) {
+                  <li><svg lucideCheckCircle2 size="14" class="check-icon"></svg> {{ feature }}</li>
+                }
+              </ul>
+            </div>
+          </div>
+          
+          <div class="pricing-footer">
+            <button class="btn secondary block" type="button" disabled>Editar Precio</button>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+}

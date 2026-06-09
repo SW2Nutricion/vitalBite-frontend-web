@@ -233,7 +233,7 @@ export class PatientsPage implements OnInit {
 
   private relativeDate(value: string) {
     const date = new Date(value);
-    const today = new Date(2026, 5, 4);
+    const today = new Date();
     const dateStart = new Date(date);
     dateStart.setHours(0, 0, 0, 0);
     const todayStart = new Date(today);
@@ -260,7 +260,7 @@ export class PatientsPage implements OnInit {
     if (!register) return true;
 
     const createdAt = new Date(patient.createdAt);
-    const now = new Date(2026, 5, 4, 23, 59, 59);
+    const now = new Date();
     const diffDays = Math.floor((now.getTime() - createdAt.getTime()) / 86_400_000);
 
     return (

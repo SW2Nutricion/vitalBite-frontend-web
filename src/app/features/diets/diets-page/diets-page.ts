@@ -72,17 +72,15 @@ export class DietsPage implements OnInit {
   });
 
   readonly createForm = this.fb.nonNullable.group({
-    name: ['Plan antiinflamatorio 16 semanas', Validators.required],
-    objective: ['Reducir grasa corporal', Validators.required],
+    name: ['', Validators.required],
+    objective: ['', Validators.required],
     startDate: [this.today(), Validators.required],
-    endDate: ['2026-09-27', Validators.required],
-    phase: ['Inicio / adaptacion'],
-    approach: ['Antiinflamatorio'],
+    endDate: ['', Validators.required],
+    phase: [''],
+    approach: [''],
     mealsPerDay: [4, [Validators.required, Validators.min(1)]],
-    mainRestriction: ['Sin bebidas azucaradas'],
-    notes: [
-      'Priorizar adherencia, hidratacion y ajuste progresivo de porciones durante las primeras cuatro semanas del plan.',
-    ],
+    mainRestriction: [''],
+    notes: [''],
   });
 
   readonly filteredDiets = computed(() => {

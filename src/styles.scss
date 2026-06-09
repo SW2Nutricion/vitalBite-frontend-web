@@ -224,12 +224,13 @@ button:disabled,
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
   padding: 12px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(223, 227, 214, 0.6);
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(22, 63, 42, 0.04);
 }
 
 p.chart-tooltip {
@@ -327,11 +328,17 @@ p.chart-tooltip {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 14px;
+  padding: 12px 16px;
   border: 1px solid var(--line);
-  border-radius: 14px;
-  background: #fbfaf6;
+  border-radius: 16px;
+  background: white;
   color: #86a180;
+  transition: all 0.2s ease;
+}
+
+.appointments-search-field:focus-within {
+  border-color: var(--green-700);
+  box-shadow: 0 0 0 3px rgba(47, 107, 66, 0.14);
 }
 
 .appointments-search-field input {
@@ -412,9 +419,9 @@ p.chart-tooltip {
 .appointments-actions-card,
 .appointments-availability-card {
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 24px;
   background: var(--panel);
-  box-shadow: var(--shadow);
+  box-shadow: 0 12px 32px rgba(22, 63, 42, 0.04);
 }
 
 .appointments-calendar-card {
@@ -465,9 +472,9 @@ p.chart-tooltip {
   min-height: 520px;
   display: grid;
   place-items: center;
-  border: 1px dashed var(--line);
-  border-radius: 14px;
-  background: #fbfaf6;
+  border: 2px dashed var(--line);
+  border-radius: 20px;
+  background: rgba(251, 250, 246, 0.5);
 }
 
 .appointments-day-grid {
@@ -487,12 +494,13 @@ p.chart-tooltip {
 .appointments-day-column {
   display: grid;
   align-content: start;
-  gap: 10px;
-  padding: 12px;
+  gap: 12px;
+  padding: 16px;
   border: 1px solid var(--line);
-  border-radius: 14px;
-  background: #fbfaf6;
+  border-radius: 20px;
+  background: #fdfdfc;
   min-height: 520px;
+  transition: all 0.2s ease;
 }
 
 .appointments-day-column.today {
@@ -520,11 +528,17 @@ p.chart-tooltip {
   display: grid;
   gap: 5px;
   text-align: left;
-  padding: 12px;
+  padding: 14px;
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: 16px;
   background: #f3f5ef;
   color: var(--green-950);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.appointment-entry-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
 }
 
 .appointment-entry-card strong {

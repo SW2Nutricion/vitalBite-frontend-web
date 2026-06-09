@@ -38,6 +38,7 @@ import { homeRouteFor } from '../../core/guards/role-routing';
 export class MainLayout implements OnInit {
   readonly navItems = [
     { label: 'Tenants', route: '/super-admin/tenants', icon: 'tenants', superAdminOnly: true },
+    { label: 'Finanzas', route: '/super-admin/billing', icon: 'payments', superAdminOnly: true },
     { label: 'Auditoria', route: '/audit-log', icon: 'audit', auditOnly: true },
     { label: 'Inicio', route: '/dashboard', icon: 'dashboard' },
     { label: 'Pacientes', route: '/patients', icon: 'patients' },
@@ -45,7 +46,6 @@ export class MainLayout implements OnInit {
     { label: 'Citas', route: '/appointments', icon: 'appointments' },
     { label: 'Pagos', route: '/payments-subscriptions', icon: 'payments', adminOnly: true },
     { label: 'Reportes', route: null, icon: 'reports' },
-    { label: 'Configuracion', route: null, icon: 'settings' },
   ];
 
   constructor(readonly session: SessionService) {}

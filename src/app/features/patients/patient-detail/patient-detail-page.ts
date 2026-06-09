@@ -120,7 +120,7 @@ export class PatientDetailPage implements OnInit {
     if (!appointment) return 'Sin cita';
 
     const date = new Date(appointment.scheduledAt);
-    const today = new Date(2026, 5, 4);
+    const today = new Date();
     const dateStart = new Date(date);
     dateStart.setHours(0, 0, 0, 0);
     const todayStart = new Date(today);

@@ -1,11 +1,14 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
+import { NgxEchartsDirective } from 'ngx-echarts';
+import type { EChartsOption } from 'echarts';
 import {
   LucideBuilding2,
   LucideCheckCircle2,
   LucideEye,
   LucideRefreshCw,
-  LucideShield,
   LucideX,
+  LucideUsers,
+  LucideUserCheck,
 } from '@lucide/angular';
 import {
   PlanChangeRequest,
@@ -23,12 +26,14 @@ type ResolveAction = 'APPROVE' | 'REJECT';
   selector: 'app-super-admin-tenants-page',
   imports: [
     ModalComponent,
+    NgxEchartsDirective,
     LucideBuilding2,
     LucideCheckCircle2,
     LucideEye,
     LucideRefreshCw,
-    LucideShield,
     LucideX,
+    LucideUsers,
+    LucideUserCheck,
   ],
   templateUrl: './super-admin-tenants-page.html',
   styleUrl: './super-admin-tenants-page.scss',
@@ -52,6 +57,83 @@ export class SuperAdminTenantsPage implements OnInit {
   readonly pendingCount = computed(() =>
     this.tenants().reduce((total, tenant) => total + tenant.pendingPlanChangeRequestsCount, 0),
   );
+
+  readonly totalGlobalUsers = computed(() =>
+    this.tenants().reduce((total, tenant) => total + tenant.usersCount, 0),
+  );
+
+  readonly totalGlobalPatients = computed(() =>
+    this.tenants().reduce((total, tenant) => total + tenant.patientsCount, 0),
+  );
+
+  readonly totalActiveTenants = computed(() =>
+    this.tenants().filter((t) => t.tenant.status === 'ACTIVE').length,
+  );
+
+  readonly statusChartOptions = computed<EChartsOption>(() => {
+    const active = this.totalActiveTenants();
+    const suspended = this.tenants().filter((t) => t.tenant.status === 'SUSPENDED').length;
+    const disabled = this.tenants().filter((t) => t.tenant.status === 'DISABLED').length;
+
+    return {
+      tooltip: { trigger: 'item' },
+      legend: { top: 'bottom', textStyle: { color: '#64748b' } },
+      series: [
+        {
+          name: 'Estados',
+          type: 'pie',
+          radius: ['45%', '75%'],
+          avoidLabelOverlap: false,
+          itemStyle: {
+            borderRadius: 8,
+            borderColor: '#ffffff',
+            borderWidth: 2,
+          },
+          label: { show: false, position: 'center' },
+          emphasis: {
+            label: { show: true, fontSize: 16, fontWeight: 'bold' },
+          },
+          labelLine: { show: false },
+          data: [
+            { value: active, name: 'Activos', itemStyle: { color: '#10b981' } },
+            { value: suspended, name: 'Suspendidos', itemStyle: { color: '#f59e0b' } },
+            { value: disabled, name: 'Deshabilitados', itemStyle: { color: '#ef4444' } },
+          ],
+        },
+      ],
+    };
+  });
+
+  readonly volumeChartOptions = computed<EChartsOption>(() => {
+    const sorted = [...this.tenants()]
+      .sort((a, b) => b.patientsCount - a.patientsCount)
+      .slice(0, 5);
+    const names = sorted.map((t) => t.tenant.name);
+    const patients = sorted.map((t) => t.patientsCount);
+    const users = sorted.map((t) => t.usersCount);
+
+    return {
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+      legend: { textStyle: { color: '#64748b' } },
+      grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
+      xAxis: { type: 'value', splitLine: { lineStyle: { color: '#f1f5f9' } } },
+      yAxis: { type: 'category', data: names, axisLabel: { color: '#64748b', width: 120, overflow: 'break' } },
+      series: [
+        {
+          name: 'Pacientes',
+          type: 'bar',
+          data: patients,
+          itemStyle: { color: '#3b82f6', borderRadius: [0, 4, 4, 0] },
+        },
+        {
+          name: 'Usuarios',
+          type: 'bar',
+          data: users,
+          itemStyle: { color: '#8b5cf6', borderRadius: [0, 4, 4, 0] },
+        },
+      ],
+    };
+  });
 
   constructor(private readonly superAdminTenantsService: SuperAdminTenantsService) {}
 

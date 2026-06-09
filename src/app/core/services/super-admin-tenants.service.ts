@@ -161,4 +161,36 @@ export class SuperAdminTenantsService {
       ),
     );
   }
+
+  async superAdminRevenueMetrics() {
+    const data = await this.graphql.query<{
+      superAdminRevenueMetrics: {
+        mrr: number;
+        activeSubscriptions: number;
+        revenueByPlan: {
+          planCode: string;
+          planName: string;
+          mrr: number;
+          subscriptionsCount: number;
+        }[];
+      };
+    }>(
+      `
+        query SuperAdminRevenueMetrics {
+          superAdminRevenueMetrics {
+            mrr
+            activeSubscriptions
+            revenueByPlan {
+              planCode
+              planName
+              mrr
+              subscriptionsCount
+            }
+          }
+        }
+      `,
+    );
+
+    return data.superAdminRevenueMetrics;
+  }
 }

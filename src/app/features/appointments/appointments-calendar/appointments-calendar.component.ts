@@ -30,7 +30,9 @@ import {
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import { PatientsService } from '../../../core/services/patients.service';
 import { SessionService } from '../../../core/services/session.service';
-import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { CancelAppointmentModalComponent } from './modals/cancel-appointment-modal.component';
+import { RescheduleAppointmentModalComponent } from './modals/reschedule-appointment-modal.component';
+import { CreateAppointmentModalComponent } from './modals/create-appointment-modal.component';
 
 type CalendarViewMode = 'DAY' | 'WEEK' | 'MONTH';
 type AppointmentFiltersValue = {
@@ -58,13 +60,12 @@ type CalendarMonthCell = {
   selector: 'app-appointments-calendar',
   imports: [
     ReactiveFormsModule,
-    ModalComponent,
+    CancelAppointmentModalComponent,
+    RescheduleAppointmentModalComponent,
+    CreateAppointmentModalComponent,
     LucideChevronDown,
     LucideClock,
-    LucidePlus,
-    LucideRotateCw,
     LucideSearch,
-    LucideX,
   ],
   templateUrl: './appointments-calendar.component.html',
 })
@@ -109,32 +110,6 @@ export class AppointmentsCalendarComponent implements OnInit, OnChanges {
       initialValue: this.filters.getRawValue() as AppointmentFiltersValue,
     },
   );
-
-  readonly form = this.fb.nonNullable.group({
-    patientId: ['', Validators.required],
-    scheduledDate: [this.dateInputValue(new Date()), Validators.required],
-    scheduledTime: ['09:00', Validators.required],
-    durationMinutes: [45, [Validators.required, Validators.min(1)]],
-    mode: ['IN_PERSON' as 'IN_PERSON' | 'VIRTUAL'],
-    reason: ['Consulta nutricional'],
-    notes: [''],
-    status: ['SCHEDULED' as AppointmentStatus],
-  });
-
-  readonly rescheduleForm = this.fb.nonNullable.group({
-    scheduledDate: [this.dateInputValue(new Date()), Validators.required],
-    scheduledTime: ['09:00', Validators.required],
-    durationMinutes: [45, [Validators.required, Validators.min(1)]],
-    reason: [''],
-    notes: [''],
-  });
-
-  readonly cancelForm = this.fb.nonNullable.group({
-    reason: [
-      'Reprogramada por solicitud del paciente',
-      [Validators.required, Validators.minLength(1)],
-    ],
-  });
 
   readonly selectedAppointment = computed(
     () =>
@@ -187,11 +162,6 @@ export class AppointmentsCalendarComponent implements OnInit, OnChanges {
     const status = this.selectedAppointment()?.status;
     return !!status && !['CANCELLED', 'COMPLETED', 'NO_SHOW'].includes(status);
   });
-  readonly availabilityItems = computed(() => [
-    { label: `Hoy ${this.slotTimeLabel(14, 0)}`, action: 'Agendar' },
-    { label: `Jue ${this.slotTimeLabel(12, 0)}`, action: 'Agendar' },
-    { label: `Vie ${this.slotTimeLabel(9, 30)}`, action: 'Agendar' },
-  ]);
 
   constructor(
     private readonly appointmentsService: AppointmentsService,
@@ -225,32 +195,10 @@ export class AppointmentsCalendarComponent implements OnInit, OnChanges {
 
   openCreate() {
     this.successMessage.set('');
-    const selectedPatientId =
-      this.patientId ??
-      this.selectedAppointment()?.patientId ??
-      this.patients()[0]?.id ??
-      '';
-
-    this.form.reset({
-      patientId: selectedPatientId,
-      scheduledDate: this.dateInputValue(this.referenceDate()),
-      scheduledTime: '09:00',
-      durationMinutes: 45,
-      mode: 'IN_PERSON',
-      reason: 'Consulta nutricional',
-      notes: '',
-      status: 'SCHEDULED',
-    });
     this.modalOpen.set(true);
   }
 
-  async create() {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    const raw = this.form.getRawValue();
+  async create(raw: any) {
     const input: CreateAppointmentInput = {
       patientId: this.patientId ?? raw.patientId,
       nutritionistId: this.session.user()?.id ?? '',
@@ -274,27 +222,13 @@ export class AppointmentsCalendarComponent implements OnInit, OnChanges {
     if (!appointment) return;
 
     this.successMessage.set('');
-    const appointmentDate = new Date(appointment.scheduledAt);
-    this.rescheduleForm.reset({
-      scheduledDate: this.dateInputValue(appointmentDate),
-      scheduledTime: this.timeInputValue(appointmentDate),
-      durationMinutes: appointment.durationMinutes,
-      reason: appointment.reason ?? '',
-      notes: appointment.notes ?? '',
-    });
     this.rescheduleModalOpen.set(true);
   }
 
-  async rescheduleSelected() {
+  async rescheduleSelected(raw: any) {
     const appointment = this.selectedAppointment();
     if (!appointment) return;
 
-    if (this.rescheduleForm.invalid) {
-      this.rescheduleForm.markAllAsTouched();
-      return;
-    }
-
-    const raw = this.rescheduleForm.getRawValue();
     await this.runAppointmentAction(
       () =>
         this.appointmentsService.reschedule(appointment.id, {
@@ -313,26 +247,18 @@ export class AppointmentsCalendarComponent implements OnInit, OnChanges {
     if (!appointment) return;
 
     this.successMessage.set('');
-    this.cancelForm.reset({
-      reason: appointment.cancelReason ?? 'Cancelada por coordinacion de agenda',
-    });
     this.cancelModalOpen.set(true);
   }
 
-  async cancelSelected() {
+  async cancelSelected(event: { reason: string }) {
     const appointment = this.selectedAppointment();
     if (!appointment) return;
-
-    if (this.cancelForm.invalid) {
-      this.cancelForm.markAllAsTouched();
-      return;
-    }
 
     await this.runAppointmentAction(
       () =>
         this.appointmentsService.cancel(
           appointment.id,
-          this.cancelForm.controls.reason.value,
+          event.reason,
         ),
       'Cita cancelada correctamente.',
       () => this.cancelModalOpen.set(false),
@@ -484,16 +410,11 @@ export class AppointmentsCalendarComponent implements OnInit, OnChanges {
   private async loadPatients() {
     if (this.isPatientScoped()) {
       this.patients.set([]);
-      this.form.controls.patientId.setValue(this.patientId ?? '');
       return;
     }
 
     const patients = await this.patientsService.list();
     this.patients.set(patients);
-
-    if (!this.form.controls.patientId.value && patients[0]) {
-      this.form.controls.patientId.setValue(patients[0].id);
-    }
   }
 
   private async refreshAgenda() {

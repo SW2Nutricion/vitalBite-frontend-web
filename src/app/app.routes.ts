@@ -35,6 +35,12 @@ export const routes: Routes = [
         canActivate: [permissionGuard(['super-admin:read'])],
       },
       {
+        path: 'super-admin/billing',
+        loadComponent: () =>
+          import('./features/super-admin-billing/super-admin-billing-page').then((m) => m.SuperAdminBillingPage),
+        canActivate: [permissionGuard(['super-admin:read'])],
+      },
+      {
         path: 'activate-plan',
         component: ActivatePlanPage,
         canActivate: [subscriptionGuard('inactive')],

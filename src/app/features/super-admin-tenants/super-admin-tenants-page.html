@@ -10,20 +10,51 @@
 </header>
 
 <section class="super-kpis">
-  <article>
-    <span><svg lucideBuilding2 size="20"></svg></span>
-    <div>
-      <small>Tenants activos en panel</small>
+  <article class="kpi-card glass">
+    <div class="kpi-icon blue"><svg lucideBuilding2 size="24"></svg></div>
+    <div class="kpi-info">
+      <small>Total Tenants</small>
       <strong>{{ tenants().length }}</strong>
     </div>
   </article>
-  <article>
-    <span><svg lucideShield size="20"></svg></span>
-    <div>
-      <small>Solicitudes pendientes</small>
-      <strong>{{ pendingCount() }}</strong>
+  <article class="kpi-card glass">
+    <div class="kpi-icon green"><svg lucideCheckCircle2 size="24"></svg></div>
+    <div class="kpi-info">
+      <small>Tenants Activos</small>
+      <strong>{{ totalActiveTenants() }}</strong>
     </div>
   </article>
+  <article class="kpi-card glass">
+    <div class="kpi-icon purple"><svg lucideUsers size="24"></svg></div>
+    <div class="kpi-info">
+      <small>Pacientes Globales</small>
+      <strong>{{ totalGlobalPatients() }}</strong>
+    </div>
+  </article>
+  <article class="kpi-card glass">
+    <div class="kpi-icon amber"><svg lucideUserCheck size="24"></svg></div>
+    <div class="kpi-info">
+      <small>Usuarios Registrados</small>
+      <strong>{{ totalGlobalUsers() }}</strong>
+    </div>
+  </article>
+</section>
+
+<section class="charts-grid">
+  <div class="chart-card glass">
+    <div class="chart-header">
+      <h3>Distribución Operativa</h3>
+      <p class="muted">Estado actual de todos los tenants clínicos</p>
+    </div>
+    <div echarts [options]="statusChartOptions()" class="echart-container" style="height: 300px; display: block;"></div>
+  </div>
+  <div class="chart-card glass">
+    <div class="chart-header">
+      <h3>Volumen Top 5</h3>
+      <p class="muted">Pacientes vs Usuarios en tenants líderes</p>
+    </div>
+    <div echarts [options]="volumeChartOptions()" class="echart-container" style="height: 300px; display: block;"></div>
+  </div>
 </section>
 
 <section class="toolbar">
