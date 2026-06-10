@@ -2,16 +2,13 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 
-# Habilitar pnpm
-RUN corepack enable pnpm
-
-# Copiar archivos de dependencias
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# Copiar archivos de dependencias (usaremos npm para evitar restricciones de pnpm)
+COPY package.json ./
+RUN npm install
 
 # Copiar el resto del código y compilar
 COPY . .
-RUN pnpm run build
+RUN npm run build
 
 # Stage 2: Servidor Nginx
 FROM nginx:alpine
