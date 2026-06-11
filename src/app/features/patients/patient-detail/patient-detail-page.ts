@@ -8,7 +8,9 @@ import {
   LucidePencil,
   LucideFile,
   LucideFileText,
-  LucideDownload
+  LucideDownload,
+  LucideBrainCircuit,
+  LucideSparkles
 } from '@lucide/angular';
 import { AppointmentsCalendarComponent } from '../../appointments/appointments-calendar/appointments-calendar.component';
 import { AnthropometryPanelComponent } from '../anthropometry/anthropometry-panel.component';
@@ -34,6 +36,8 @@ import { RiskPredictionsService } from '../../../core/services/risk-predictions.
     LucideFile,
     LucideFileText,
     LucideDownload,
+    LucideBrainCircuit,
+    LucideSparkles,
     DatePipe,
     AppointmentsCalendarComponent,
     AnthropometryPanelComponent,
@@ -170,6 +174,12 @@ export class PatientDetailPage implements OnInit {
     const probability = this.riskPrediction()?.probabilidad;
     if (probability === null || probability === undefined) return 'N/D';
     return `${Math.round(probability * 100)}%`;
+  }
+
+  riskProbability() {
+    const probability = this.riskPrediction()?.probabilidad;
+    if (probability === null || probability === undefined) return 0;
+    return Math.round(probability * 100);
   }
 
   riskUpdatedLabel() {

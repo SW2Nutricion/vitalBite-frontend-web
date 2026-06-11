@@ -83,6 +83,104 @@
             </div>
           </div>
 
+          <section class="risk-prediction-card premium-card hero-card">
+            <div class="premium-glow hero-glow"></div>
+            
+            <div class="risk-prediction-head hero-head">
+              <div class="ai-title-wrap">
+                <span class="ai-icon-bg hero-icon"><svg lucideBrainCircuit size="28"></svg></span>
+                <div>
+                  <h3 class="hero-title">Riesgo nutricional Inteligencia Artificial</h3>
+                  <p class="hero-subtitle">Predicción automática basada en Machine Learning y datos biométricos</p>
+                </div>
+              </div>
+              <span
+                class="risk-status-pill premium-pill hero-pill"
+                [class.high]="riskLevelClass() === 'high'"
+                [class.medium]="riskLevelClass() === 'medium'"
+                [class.low]="riskLevelClass() === 'low'"
+                [class.neutral]="riskLevelClass() === 'neutral'"
+              >
+                @if (riskLoading()) {
+                  Calculando <svg lucideSparkles size="16" class="spin-slow"></svg>
+                } @else if (riskPrediction()?.status === 'UNAVAILABLE') {
+                  No disponible
+                } @else if (riskPrediction()?.status === 'INSUFFICIENT_DATA') {
+                  Faltan datos
+                } @else {
+                  {{ riskPrediction()?.nivelRiesgo || 'N/D' }}
+                }
+              </span>
+            </div>
+
+            @if (riskLoading()) {
+              <div class="risk-empty-state premium-empty">
+                <div class="loader-pulse hero-loader"></div>
+                <span class="hero-empty-text">Analizando el expediente médico con Inteligencia Artificial...</span>
+              </div>
+            } @else if (riskPrediction()?.status === 'UNAVAILABLE') {
+              <div class="risk-empty-state premium-empty error">
+                <svg lucideAlertTriangle size="28"></svg>
+                <div class="empty-text">
+                  <strong class="hero-empty-strong">Servicio no disponible</strong>
+                  <span class="hero-empty-span">La IA está en mantenimiento. Intenta más tarde.</span>
+                </div>
+              </div>
+            } @else if (riskPrediction()?.status === 'INSUFFICIENT_DATA') {
+              <div class="risk-empty-state premium-empty warning">
+                <svg lucideAlertTriangle size="28"></svg>
+                <div class="empty-text">
+                  <strong class="hero-empty-strong">Datos insuficientes</strong>
+                  <span class="hero-empty-span">Registra fecha de nacimiento, peso y talla para poder calcular.</span>
+                </div>
+              </div>
+            } @else if (riskPrediction()) {
+              <div class="risk-prediction-premium-grid hero-grid">
+                
+                <div class="risk-gauge-container">
+                  <div class="gauge-wrapper hero-gauge" [class]="riskLevelClass()">
+                    <svg viewBox="0 0 36 36" class="circular-chart">
+                      <path class="circle-bg"
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                      <path class="circle"
+                        [attr.stroke-dasharray]="riskProbability() + ', 100'"
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                      <text x="18" y="20.35" class="percentage">{{ riskProbabilityLabel() }}</text>
+                      <text x="18" y="25.5" class="sub-percentage">Precisión</text>
+                    </svg>
+                  </div>
+                  <div class="gauge-info hero-gauge-info">
+                    <strong>Nivel de confianza</strong>
+                    <span>Actualizado {{ riskUpdatedLabel() }}</span>
+                  </div>
+                </div>
+
+                <div class="risk-factors-container hero-factors">
+                  <div class="factors-header hero-factors-header">
+                    <svg lucideAlertTriangle size="20"></svg>
+                    <strong>Factores clínicos críticos detectados</strong>
+                  </div>
+                  <ul class="factors-list hero-factors-list">
+                    @for (factor of (riskPrediction()?.factoresCriticos || ['Perfil clínico general estable']); track factor) {
+                      <li>{{ factor }}</li>
+                    }
+                  </ul>
+                  <p class="risk-recommendation-premium hero-recommendation">
+                    <svg lucideSparkles size="20"></svg>
+                    <span>{{ riskPrediction()?.recomendacion || 'Mantener monitoreo preventivo trimestral.' }}</span>
+                  </p>
+                </div>
+
+              </div>
+            }
+          </section>
+
           <div class="summary-mini-grid">
             <div>
               <small>Contacto</small>
@@ -101,64 +199,7 @@
             </div>
           </div>
 
-          <section class="risk-prediction-card">
-            <div class="risk-prediction-head">
-              <div>
-                <h3>Riesgo nutricional IA</h3>
-                <p>Prediccion automatica con los ultimos datos clinicos</p>
-              </div>
-              <span
-                class="risk-status-pill"
-                [class.high]="riskLevelClass() === 'high'"
-                [class.medium]="riskLevelClass() === 'medium'"
-                [class.low]="riskLevelClass() === 'low'"
-                [class.neutral]="riskLevelClass() === 'neutral'"
-              >
-                @if (riskLoading()) {
-                  Calculando
-                } @else if (riskPrediction()?.status === 'UNAVAILABLE') {
-                  IA no disponible
-                } @else if (riskPrediction()?.status === 'INSUFFICIENT_DATA') {
-                  Datos insuficientes
-                } @else {
-                  {{ riskPrediction()?.nivelRiesgo || 'N/D' }}
-                }
-              </span>
-            </div>
 
-            @if (riskLoading()) {
-              <div class="risk-empty-state">
-                <svg lucideActivity size="18"></svg>
-                Analizando expediente...
-              </div>
-            } @else if (riskPrediction()?.status === 'UNAVAILABLE') {
-              <div class="risk-empty-state">
-                <svg lucideAlertTriangle size="18"></svg>
-                El servicio de IA no esta disponible en este momento.
-              </div>
-            } @else if (riskPrediction()?.status === 'INSUFFICIENT_DATA') {
-              <div class="risk-empty-state">
-                <svg lucideAlertTriangle size="18"></svg>
-                Registra fecha de nacimiento, peso y talla para calcular el riesgo.
-              </div>
-            } @else if (riskPrediction()) {
-              <div class="risk-prediction-grid">
-                <div>
-                  <small>Probabilidad</small>
-                  <strong>{{ riskProbabilityLabel() }}</strong>
-                  <span>Actualizado {{ riskUpdatedLabel() }}</span>
-                </div>
-                <div>
-                  <small>Factores criticos</small>
-                  <strong>{{ riskPrediction()?.factoresCriticos?.[0] || 'Perfil clinico general' }}</strong>
-                  <span>{{ (riskPrediction()?.factoresCriticos?.length || 0) }} factores detectados</span>
-                </div>
-              </div>
-              <p class="risk-recommendation">
-                {{ riskPrediction()?.recomendacion || 'Sin recomendacion disponible.' }}
-              </p>
-            }
-          </section>
 
           <section class="clinical-note-card">
             <h3>Notas clinicas</h3>

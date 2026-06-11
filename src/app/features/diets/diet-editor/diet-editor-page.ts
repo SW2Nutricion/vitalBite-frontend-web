@@ -279,8 +279,14 @@ export class DietEditorPage implements OnInit {
       const s3Url = await this.dietsService.generatePdf(diet.id);
       window.open(s3Url, '_blank');
       this.successMessage.set('PDF generado correctamente. Se abrio en una nueva pestana.');
-    } catch (e) {
-      this.actionError.set('Ocurrio un error al generar el PDF.');
+    } catch (e: unknown) {
+      console.error('[DietEditor] Error al generar PDF:', e);
+      const errorMsg = e instanceof Error ? e.message : 'Error desconocido';
+      if (errorMsg.includes('No se pudo conectar') || errorMsg.includes('unavailable')) {
+        this.actionError.set('El servicio de documentos no esta disponible. Verifica que este en ejecucion.');
+      } else {
+        this.actionError.set('Ocurrio un error al generar el PDF. Revisa la consola para mas detalles.');
+      }
     } finally {
       this.generatingPdf.set(false);
     }

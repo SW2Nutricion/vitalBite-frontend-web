@@ -45,7 +45,7 @@ export class MainLayout implements OnInit {
     { label: 'Usuarios', route: '/users', icon: 'users', adminOnly: true },
     { label: 'Citas', route: '/appointments', icon: 'appointments' },
     { label: 'Pagos', route: '/payments-subscriptions', icon: 'payments', adminOnly: true },
-    { label: 'Reportes', route: null, icon: 'reports' },
+    { label: 'Segmentación', route: '/dashboard/segmentations', icon: 'reports' },
   ];
 
   constructor(readonly session: SessionService) {}
