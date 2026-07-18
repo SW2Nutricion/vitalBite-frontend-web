@@ -14,7 +14,7 @@ RUN npm run build
 FROM nginx:alpine
 
 # Copiar el resultado de la compilación
-COPY --from=build /app/dist/vitalBite-frontend-web /usr/share/nginx/html
+COPY --from=build /app/dist/vitalBite-frontend-web/browser /usr/share/nginx/html
 
 # Copiar configuración personalizada de Nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
