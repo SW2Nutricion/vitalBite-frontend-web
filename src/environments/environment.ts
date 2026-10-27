@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  graphqlUrl: 'https://3.139.64.74.nip.io/graphql',
+  graphqlUrl: 'http://localhost:4000/graphql',
 };

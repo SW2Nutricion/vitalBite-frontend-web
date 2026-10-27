@@ -13,7 +13,7 @@ Aplicación web Angular para nutricionistas y administradores de VitalBite.
 
 - Node.js 24.13+ usado en el entorno actual
 - pnpm 10+
-- Core NestJS ejecutándose en `http://localhost:3000/graphql`
+- API Gateway ejecutándose en `http://localhost:4000/graphql`
 
 ## Desarrollo
 
